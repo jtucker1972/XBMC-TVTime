@@ -1,6 +1,6 @@
 #   Copyright (C) 2011 James A. Tucker
 #
-# This file is part of TVTime
+# This file is part of TV Time
 #
 #   Original Code: Copyright (C) 2011 Jason Anderson
 #   Modified by James A. Tucker for TVTime
@@ -343,6 +343,13 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
                 if self.channels[channel].setPlaylist(CHANNELS_LOC + 'channel_' + str(m3uNum) + '.m3u') == True:
                     self.channels[channel].isValid = True
                     self.channels[channel].fileName = CHANNELS_LOC + 'channel_' + str(m3uNum) + '.m3u'
+
+                    self.log("playlistNum:" + str(self.getChannelPlaylistNum(m3uNum-1)))
+                    self.log("playlistFilename: " + str(self.getSmartPlaylistFilename(self.getChannelPlaylistNum(m3uNum-1))))
+                    self.log("channelName: " + str(self.getSmartPlaylistName(self.getSmartPlaylistFilename(self.getChannelPlaylistNum(m3uNum-1)))))
+
+                    self.channels[channel].name = self.getSmartPlaylistName(self.getSmartPlaylistFilename(self.getChannelPlaylistNum(m3uNum-1)))
+
                     returnval = True
 
                     # channelResetSetting:
@@ -370,9 +377,8 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
                         if timedif < 0:
                             resetChannel = True
 
-# don't reset time until after successful resetting
-#                        if resetChannel:
-#                            ADDON_SETTINGS.setSetting('LastResetTime', str(int(time.time())))
+                        if resetChannel:
+                            ADDON_SETTINGS.setSetting('LastResetTime', str(int(time.time())))
 
             except:
                 pass
