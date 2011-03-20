@@ -225,7 +225,7 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
     def buildPlaylists(self):
         # Give some feedback to the user
         self.loadDialog = xbmcgui.DialogProgress()
-        self.loadDialog.create("XBTV", "Preparing for Playlist Creation")
+        self.loadDialog.create("TV Time", "Preparing for Playlist Creation")
         self.loadDialog.update(0, "Preparing for Playlist Creation")        
 
         # Setup Preset Channel Object
@@ -261,7 +261,7 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
     def loadPlaylists(self):
         self.log("loadPlaylists")
         self.startupTime = time.time()
-        self.updateDialog.create("XBTV", "Building channel list")
+        self.updateDialog.create("TV Time", "Building channel list")
         self.updateDialog.update(0, "Building channel list")
         self.background.setVisible(True)
 
@@ -298,7 +298,7 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
 #
     def loadChannels(self):
         self.startupTime = time.time()
-        self.updateDialog.create("XBTV", "Loading channel list")
+        self.updateDialog.create("TV Time", "Loading channel list")
         self.updateDialog.update(0, "Loading channel list")
         self.background.setVisible(True)
         self.log("self.maxChannels: " + str(self.maxChannels))
@@ -1501,7 +1501,7 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
                         self.sleepTimer.cancel()
                         self.sleepTimer = threading.Timer(self.sleepTimeValue, self.sleepAction)
 
-                if dlg.yesno("Exit?", "Are you sure you want to exit XBTV?"):
+                if dlg.yesno("Exit?", "Are you sure you want to exit TV Time?"):
                     self.end()
                 else:
                     self.startSleepTimer()

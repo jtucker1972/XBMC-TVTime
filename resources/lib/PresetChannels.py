@@ -138,7 +138,7 @@ class presetChannels:
 
         # add some feedback to the user on the progress
         self.loadDialog = xbmcgui.DialogProgress()
-        self.loadDialog.create("XBTV", "Create Channel Playlists")
+        self.loadDialog.create("TV Time", "Create Channel Playlists")
         self.loadDialog.update(0, "Creating Channel Playlists")        
 
         # set the decimal precision
