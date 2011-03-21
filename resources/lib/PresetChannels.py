@@ -708,7 +708,7 @@ class presetChannels:
                         
 
     def fillCustomChannels(self):
-        self.log("fillCustomChannels:")
+        self.log("fillCustomChannels: Started")
         self.log("fillCustomChannels: Looking for custom channels in " + str(xbmc.translatePath('special://profile/playlists/video')))
         # read video playlist folder for Channel_x.xsd files
         if os.path.exists(xbmc.translatePath('special://profile/playlists/video')):
@@ -744,6 +744,7 @@ class presetChannels:
                 src = os.path.join(path, infile)
                 ADDON_SETTINGS.setSetting('custom' + channelNum + 'on', 'true')
                 ADDON_SETTINGS.setSetting('custom' + channelNum, src)
+        self.log("fillCustomChannels: Completed")
 
 
     def log(self, msg, level = xbmc.LOGDEBUG):
