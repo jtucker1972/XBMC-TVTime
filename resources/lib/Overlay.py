@@ -25,10 +25,11 @@ import time, threading
 import datetime
 import sys, re
 import random
+
 from operator import itemgetter
 from xml.dom.minidom import parse, parseString
 from time import localtime, strftime
-
+from datetime import datetime, date, timedelta
 from Playlist import Playlist
 from Globals import *
 from Channel import Channel
@@ -70,7 +71,6 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
 
     def resetChannelTimes(self):
         curtime = time.time()
-
         for i in range(self.maxChannels):
             self.channels[i].setAccessTime(curtime - self.channels[i].totalTimePlayed)
 
@@ -122,6 +122,85 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
         if self.forceReset == True:
             self.resetChannels()
             
+        # set next auto resetChannel time
+        # need to get current datetime in local time
+        #self.log("current datetime is: " + str(strftime("%b %d %Y %H:%M:%S", localtime())))
+        time_tuple = localtime()
+        self.log("current time tuple: " + str(time_tuple))
+        d = datetime(*(time_tuple[0:6]))
+        year = d.strftime('%Y')
+        month = d.strftime('%m')
+        day = d.strftime('%d')
+        hour = d.strftime('%H')
+        minutes = d.strftime('%M')
+        seconds = d.strftime('%S')
+
+        self.log("current year: " + str(year))        
+        self.log("current month: " + str(month))        
+        self.log("current day: " + str(day))        
+        self.log("current hour: " + str(hour))        
+        self.log("current minutes: " + str(minutes))        
+        self.log("current seconds: " + str(seconds))        
+        
+        resetInterval = ADDON_SETTINGS.getSetting("ChannelResetSetting")
+        if resetInterval == "1":
+            # Daily
+            interval = timedelta(days=1)
+            day = int(day) + 1
+        elif resetInterval == "2":
+            # Weekly
+            interval = timedelta(weeks=1)
+            day = int(day) + 7
+        elif resetInterval == "3":
+            # Monthly
+            interval = timedelta(months=1)
+            month = int(month) + 1
+        
+        resetDate = datetime(int(year), int(month), int(day), int(hour), int(minutes), int(seconds), 0, None)
+        self.log("resetDate: " + str(resetDate))
+        
+        # need to get setting of when to auto reset
+        # Automatic|Every Day|Every Week|Every Month|Never
+        # 0 = Automatic
+        # 1 = Daily
+        # 2 = Weekly
+        # 3 = Monthly
+        # 4 = Never
+        # Daily = Current Date + 1 Day
+        # Weekly = CUrrent Date + 1 Week
+        # Monthly = CUrrent Date + 1 Month
+        # resetTime = self.resetTime + datetime.timedelta( hours=delta )
+        
+        # Time to Reset: 12:00am, 1:00am, 2:00am, etc.
+        # 0 = 12:00am
+        # 1 = 1:00am
+        # 2 = 2:00am
+        # 3 = 3:00am
+        # 4 = 4:00am
+        # 5 = 5:00am
+        # 6 = 6:00am
+        # 7 = 7:00am
+        # 8 = 8:00am
+        # 9 = 9:00am
+        # 10 = 10:00am
+        # 11 = 11:00am
+        # 12 = 12:00pm
+        # 13 = 1:00pm
+        # 14 = 2:00pm
+        # 15 = 3:00pm
+        # 16 = 4:00pm
+        # 17 = 5:00pm
+        # 18 = 6:00pm
+        # 19 = 7:00pm
+        # 20 = 8:00pm
+        # 21 = 9:00pm
+        # 22 = 10:00pm
+        # 23 = 11:00pm
+        
+        # need to get difference between the two
+        
+        # set timer 
+        
         # Get Maximum Number of M3u's after all channels have been built from playlists
         # maxM3uNum = self.findMaxM3us()
         
