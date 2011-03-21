@@ -26,8 +26,8 @@ import datetime
 import sys, re
 import random
 from operator import itemgetter
-
 from xml.dom.minidom import parse, parseString
+from time import localtime, strftime
 
 from Playlist import Playlist
 from Globals import *
@@ -156,7 +156,7 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
         self.timeStarted = time.time()
         self.background.setVisible(False)
         self.startSleepTimer()
-        self.actionSemaphore.release()
+        self.actionSemaphore.release()        
         self.log('onInit return')
 
 
@@ -1059,6 +1059,7 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
 
     def deleteCache(self):
         dir = xbmc.translatePath('special://profile/addon_data/' + ADDON_ID + '/cache/')       
+        self.log('deletePresetChannels: Started')
         for filename in os.listdir(dir):
             fle = os.path.join(dir, filename)
             self.log('deletePresetChannels: deleting file: ' + fle)
@@ -1067,6 +1068,7 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
                     os.unlink(fle)
             except Exception, e:
                 self.log(e)
+        self.log('deletePresetChannels: Completed')
 
 
     def escapeDirJSON(self, dir_name):
@@ -1558,7 +1560,7 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
     # cleanup and end
     def end(self):
         self.log('end')
-
+        
         try:
             if self.channelLabelTimer.isAlive():
                 self.channelLabelTimer.cancel()

@@ -708,10 +708,14 @@ class presetChannels:
                         
 
     def fillCustomChannels(self):
+        self.log("fillCustomChannels:")
+        self.log("fillCustomChannels: Looking for custom channels in " + str(xbmc.translatePath('special://profile/playlists/video')))
         # read video playlist folder for Channel_x.xsd files
         if os.path.exists(xbmc.translatePath('special://profile/playlists/video')):
+            self.log("fillCustomChannels: folder exists")
             path = xbmc.translatePath('special://profile/playlists/video')
             for infile in glob.glob( os.path.join(path, 'Channel_*.xsp') ):
+                self.log("fillCustomChannels: found channel file " + str(infile))
                 # let's parse out the channel number
                 bn = []
                 bn_parts = []
@@ -725,9 +729,12 @@ class presetChannels:
                 ADDON_SETTINGS.setSetting('custom' + channelNum, src)
         
         # read mixed playlist folder for Channel_x.xsd files
+        self.log("fillCustomChannels: Looking for custom channels in " + str(xbmc.translatePath('special://profile/playlists/mixed')))
         if os.path.exists(xbmc.translatePath('special://profile/playlists/mixed')):
+            self.log("fillCustomChannels: folder exists")
             path = xbmc.translatePath('special://profile/playlists/mixed')
             for infile in glob.glob( os.path.join(path, 'Channel_*.xsp') ):
+                self.log("fillCustomChannels: found channel file " + str(infile))
                 # let's parse out the channel number
                 bn = []
                 bn_parts = []
