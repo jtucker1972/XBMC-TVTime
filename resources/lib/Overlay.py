@@ -69,34 +69,6 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
         self.log('__init__ return')
 
 
-    def resetChannelTimes(self):
-        curtime = time.time()
-        for i in range(self.maxChannels):
-            self.channels[i].setAccessTime(curtime - self.channels[i].totalTimePlayed)
-
-
-    def onFocus(self, controlId):
-        pass
-
-
-    def createChannelsDir(self):
-        if not os.path.exists(CHANNELS_LOC):
-            try:
-                os.makedirs(CHANNELS_LOC)
-            except:
-                self.Error('Unable to create the cache directory')
-                return
-
-
-    def createPresetsDir(self):
-        if not os.path.exists(PRESETS_LOC):
-            try:
-                os.makedirs(PRESETS_LOC)
-            except:
-                self.Error('Unable to create the presets directory')
-                return
-    
-
     # override the doModal function so we can setup everything first
     def onInit(self):
         self.log('onInit')
@@ -237,45 +209,6 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
         self.startSleepTimer()
         self.actionSemaphore.release()        
         self.log('onInit return')
-
-
-    def resetChannels(self):
-        # if force reset, delete old cache 
-        self.deleteCache()        
-        # call creatChannels function to rebuild playlists
-        self.buildPlaylists()
-        # load in new playlists to create new m3u files
-        self.loadPlaylists()
-    
-
-    def validateChannels(self):
-        found = False
-        for m3uNum in range(self.maxChannels):
-            if self.channels[m3uNum].isValid:
-                self.log("Channel: " + str(m3uNum) + " is valid")
-                found = True
-                return True
-        if found == False:
-            return False
-
-
-    # Determine the maximum number of channels by opening consecutive
-    # m3u until we don't find one
-    def findMaxM3us(self):
-        self.log('findMaxChannels')
-        notfound = False
-        channelNum = 1
-
-        while notfound == False:
-            self.log("findMaxM3us: " + str(channelNum) )
-            self.log("findMaxM3us: getM3uFilename: " + self.getM3uFilename(channelNum))
-            if len(self.getM3uFilename(channelNum)) == 0:
-                break
-            channelNum += 1
-
-        findMaxM3us = channelNum - 1
-        self.log('findMaxM3us return ' + str(findMaxM3us))
-        return findMaxM3us
 
 
     # setup all basic configuration parameters, including creating the playlists that
@@ -1135,6 +1068,73 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
 
         return self.fileLists
 
+
+    def resetChannels(self):
+        # if force reset, delete old cache 
+        self.deleteCache()        
+        # call creatChannels function to rebuild playlists
+        self.buildPlaylists()
+        # load in new playlists to create new m3u files
+        self.loadPlaylists()
+    
+
+    def validateChannels(self):
+        found = False
+        for m3uNum in range(self.maxChannels):
+            if self.channels[m3uNum].isValid:
+                self.log("Channel: " + str(m3uNum) + " is valid")
+                found = True
+                return True
+        if found == False:
+            return False
+
+
+    # Determine the maximum number of channels by opening consecutive
+    # m3u until we don't find one
+    def findMaxM3us(self):
+        self.log('findMaxChannels')
+        notfound = False
+        channelNum = 1
+
+        while notfound == False:
+            self.log("findMaxM3us: " + str(channelNum) )
+            self.log("findMaxM3us: getM3uFilename: " + self.getM3uFilename(channelNum))
+            if len(self.getM3uFilename(channelNum)) == 0:
+                break
+            channelNum += 1
+
+        findMaxM3us = channelNum - 1
+        self.log('findMaxM3us return ' + str(findMaxM3us))
+        return findMaxM3us
+
+
+    def resetChannelTimes(self):
+        curtime = time.time()
+        for i in range(self.maxChannels):
+            self.channels[i].setAccessTime(curtime - self.channels[i].totalTimePlayed)
+
+
+    def onFocus(self, controlId):
+        pass
+
+
+    def createChannelsDir(self):
+        if not os.path.exists(CHANNELS_LOC):
+            try:
+                os.makedirs(CHANNELS_LOC)
+            except:
+                self.Error('Unable to create the cache directory')
+                return
+
+
+    def createPresetsDir(self):
+        if not os.path.exists(PRESETS_LOC):
+            try:
+                os.makedirs(PRESETS_LOC)
+            except:
+                self.Error('Unable to create the presets directory')
+                return
+    
 
     def deleteCache(self):
         dir = xbmc.translatePath('special://profile/addon_data/' + ADDON_ID + '/cache/')       

@@ -1,6 +1,9 @@
 Changelog
 
 
+1.0.2
+    Added additional debug logging output
+
 1.0.1
     Fixed bug where custom channels were not being imported correctly.
 

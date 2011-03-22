@@ -133,6 +133,7 @@ class presetChannels:
              
 
     def buildPresetChannels(self, numPresetChannels):
+        self.log('buildPresetChannels: Started')
         # Loop through Preset Channels
         channelNum = 1
 
@@ -159,9 +160,11 @@ class presetChannels:
             self.end()
             return False
         self.loadDialog.close()        
+        self.log('buildPresetChannels: Completed')
 
 
     def buildPresetChannel(self, channelNum):
+        self.log('buildPresetChannel: Started')
         type = self.presetChannels[channelNum-1].type
         name = self.presetChannels[channelNum-1].name
         rule1 = self.presetChannels[channelNum-1].rule1
@@ -353,8 +356,12 @@ class presetChannels:
             src = str(criteria1)
             self.copyCustomChannel(channelNum, src)
 
+        self.log('buildPresetChannel: Completed')
+
 
     def buildMixedPlaylist(self, channelNum, name, mixPlaylists, limit, random):
+        self.log('buildMixedPlaylist: Started')
+
         criteria = []
         rule = 'playlist'
         operator = 'is'
@@ -400,9 +407,11 @@ class presetChannels:
         # log xml output
         self.log(presetChannel.toprettyxml(indent="  "))
         self.writepresetChannel(presetChannel, channelNum)        
+        self.log('buildMixedPlaylist: Completed')
 
 
     def buildPlaylist(self, channelNum, type, name, rule, operator1, operator2, criteria1, criteria2, limit, random, numepisodes, nummovies, unwatched, nospecials, resolution):
+        self.log('buildPlaylist: Started')
         # create xml doc
         presetChannel = self.createPresetPlaylist()
         # add smartplaylist element
@@ -499,175 +508,221 @@ class presetChannels:
         # log xml output
         self.log(presetChannel.toprettyxml(indent="  "))
         self.writepresetChannel(presetChannel, channelNum)
+        self.log('buildPlaylist: Completed')
         
 
     def createPresetPlaylist(self):
+        self.log('createPresetPlaylist: Started')
         presetChannel = Document()
+        self.log('createPresetPlaylist: Completed')
         return presetChannel
 
 
     def addSmartplaylist(self, presetChannel, type):
+        self.log('addSmartplaylist: Started')
+        self.log('addSmartplaylist: type=' + str(type))
         smartplaylist = presetChannel.createElement("smartplaylist")
         smartplaylist.setAttribute("type", type)
         presetChannel.appendChild(smartplaylist)
+        self.log('addSmartplaylist: Completed')
         return smartplaylist
 
 
     def addName(self, presetChannel, smartplaylist, name):
+        self.log('addName: Started')
+        self.log('addName: name=' + str(name))
         nameElement = presetChannel.createElement("name")
         nameText = presetChannel.createTextNode(str(name))
         nameElement.appendChild(nameText)
         smartplaylist.appendChild(nameElement)
+        self.log('addName: Completed')
         
 
     def addMatch(self, presetChannel, smartplaylist, match):
+        self.log('addMatch: Started')
+        self.log('addMatch: match=' + str(match))
         matchElement = presetChannel.createElement("match")
         matchText = presetChannel.createTextNode(str(match))
         matchElement.appendChild(matchText)
         smartplaylist.appendChild(matchElement)
+        self.log('addMatch: Completed')
    
 
     def addRule(self, presetChannel, smartplaylist, field, operator, criteria):
+        self.log('addRule: Started')
+        self.log('addRule: field=' + str(field))
+        self.log('addRule: operator=' + str(operator))
+        self.log('addRule: criteria=' + str(criteria))
         ruleElement = presetChannel.createElement("rule")
         ruleElement.setAttribute("field", field)
         ruleElement.setAttribute("operator", operator)
         ruleText = presetChannel.createTextNode(str(criteria))
         ruleElement.appendChild(ruleText)
         smartplaylist.appendChild(ruleElement)
+        self.log('addRule: Completed')
 
 
     def addLimit(self, presetChannel, smartplaylist, limit):
+        self.log('addLimit: Started')
+        self.log('addLimit: limit=' + str(limit))
         limitElement = presetChannel.createElement("limit")
         limitText = presetChannel.createTextNode(str(limit))
         limitElement.appendChild(limitText)
         smartplaylist.appendChild(limitElement)
+        self.log('addLimit: Completed')
 
 
     def addOrder(self, presetChannel, smartplaylist, order, direction):
+        self.log('addOrder: Started')
+        self.log('addOrder: order=' + str(order))
+        self.log('addOrder: direction=' + str(direction))
         orderElement = presetChannel.createElement("order")
         orderElement.setAttribute("direction", direction)
         orderText = presetChannel.createTextNode(str(order))
         orderElement.appendChild(orderText)
         smartplaylist.appendChild(orderElement)
+        self.log('addOrder: Completed')
 
 
     def writepresetChannel(self, presetChannel, channelNum):
+        self.log('writepresetChannel: Started')
+        self.log('writepresetChannel: channelNum=' + str(channelNum))
         # get path to write to
         filename = 'Channel_' + str(channelNum) + '.xsp'
         fle = os.path.join(xbmc.translatePath('special://profile/addon_data/' + ADDON_ID + '/presets/'), filename)
+        self.log('writepresetChannel: fle=' + str(fle))
         # write xml file
         f = open(fle, "w")
         presetChannel.writexml(f)
         f.close()
+        self.log('writepresetChannel: Completed')
 
 
     def getPlaylist(self, fle):
-        self.log('getPlaylist')
-
+        self.log('getPlaylist: Started')
+        self.log('getPlaylist: fle=' + str(fle))
         try:
             xml = open(fle, "r")
         except:
             self.log("getPlaylist Unable to open the smart playlist " + fle, xbmc.LOGERROR)
             return ''
-
         try:
             dom = parse(xml)
         except:
             self.log('getPlaylist Problem parsing playlist ' + fle, xbmc.LOGERROR)
             xml.close()
             return ''
-
         xml.close()
-
+        self.log('getPlaylist: Completed')
         return dom
 
 
     def copyCustomChannel(self, channelNum, src):
+        self.log('copyCustomChannel: Started')
+        self.log('copyCustomChannel: channelNum=' + str(channelNum))
+        self.log('copyCustomChannel: src=' + str(src))
         # get path to write to
         dir = xbmc.translatePath('special://profile/addon_data/' + ADDON_ID + '/presets/')
+        self.log('copyCustomChannel: dir=' + str(dir))
            
         # check if mixed playlist, if so we need to copy playlists in mixed playlist first.
         dom = self.getPlaylist(src)
         pltype = self.getSmartPlaylistType(dom)
 
         if pltype == 'mixed':
+            self.log('copyCustomChannel: Copying mixed playlist')
             self.copyMixedPlaylist(src, channelNum)
         else:
             # Copy over main playlist
             dst = xbmc.translatePath('special://profile/addon_data/' + ADDON_ID + '/presets/Channel_' + str(channelNum) + '.xsp')
+            self.log('copyCustomChannel: dst=' + str(dst))
             self.copyPlaylist(src, dst)
+        self.log('copyCustomChannel: Completed')
 
 
     # This function iterates through the mixed playlist
     # It copies the root mixed playlist as the channel_x.xsp
     # It also iterates through the playlist and calls copyMixedSubPlaylist to copy the other playlists referenced by the parent.
     def copyMixedPlaylist(self, src, channelNum):
+        self.log('copyMixedPlaylist: Started')
+        self.log('copyMixedPlaylist: channelNum=' + str(channelNum))
+        self.log('copyMixedPlaylist: src=' + str(src))
         # check if mixed playlist, if so we need to copy playlists in mixed playlist first.
         dom = self.getPlaylist(src)
         pltype = self.getSmartPlaylistType(dom)
-
+        self.log('copyMixedPlaylist: pltype=' + str(pltype))
         try:
             rulesNode = dom.getElementsByTagName("rule")
         except:
             self.log("Unable to parse the playlist.", xbmc.LOGERROR)
             return ''
-
         for rule in rulesNode:
             i = 0
             criteria = rule.childNodes[i].nodeValue
-            self.log("Playlist:" + criteria)
+            self.log('copyMixedPlaylist: criteria=' + str(criteria))
             # locate source file
             if os.path.exists(os.path.join(xbmc.translatePath('special://profile/playlists/video'), criteria)):
                 src1 = os.path.join(xbmc.translatePath('special://profile/playlists/video'), criteria)
-                self.log("found video playlist at:" + src1)
+                self.log('copyMixedPlaylist: src1=' + str(src1))
             elif os.path.exists(os.path.join(xbmc.translatePath('special://profile/playlists/mixed'), criteria)):
                 src1 = os.path.join(xbmc.translatePath('special://profile/playlists/mixed'), criteria)
-                self.log("found mixed playlist at:" + src1)
+                self.log('copyMixedPlaylist: src1=' + str(src1))
             else:
                 src1 = ""
                 self.log("Problem finding source file: " + os.path.join(xbmc.translatePath('special://profile/playlists/video'), criteria))
 
             dom1 = self.getPlaylist(src1)
             pltype1 = self.getSmartPlaylistType(dom1)
-            self.log("Playlist type is:" + pltype1)
+            self.log('copyMixedPlaylist: pltype1=' + str(pltype1))
             if pltype1 == 'movies' or pltype1 == 'episodes' or pltype1 == 'tvshows':
+                self.log("copyMixedPlaylist: Movie, Episode or TVShow Playlist")
                 # copy playlist over
-                self.log("Playlist File Before: " + src1)
-                self.log("User Video Playlist Dir: " + xbmc.translatePath('special://profile/playlists/video'))
-                self.log("User Mixed Playlist Dir: " + xbmc.translatePath('special://profile/playlists/mixed'))
+                self.log('copyMixedPlaylist: src1=' + str(src1))
+                self.log("copyMixedPlaylist: User Video Playlist Dir: " + xbmc.translatePath('special://profile/playlists/video'))
+                self.log("copyMixedPlaylist: User Mixed Playlist Dir: " + xbmc.translatePath('special://profile/playlists/mixed'))
                 fle = os.path.basename(src1)
-                self.log("Playlist File After: " + fle)
+                self.log("copyMixedPlaylist: Playlist Filename After: " + fle)
                 dst1 = os.path.join(xbmc.translatePath('special://profile/addon_data/' + ADDON_ID + '/presets'), fle)                    
-                self.log("Copying Playlist:")
-                self.log("src:" + src1)
-                self.log("dst:" + dst1)
+                self.log("copyMixedPlaylist: Copying Playlist")
+                self.log("copyMixedPlaylist: src1:" + src1)
+                self.log("copyMixedPlaylist: dst1:" + dst1)
                 self.copyPlaylist(src1, dst1)                
             elif pltype1 == 'mixed':
+                self.log("copyMixedPlaylist: Mixed Playlist")
+                self.log("copyMixedPlaylist: src1:" + src1)
                 if os.path.exists(src1):
                     self.copyMixedPlaylist(src1, "")
                 else:
-                    self.log("Problem finding source file: " + src1)
+                    self.log("copyMixedPlaylist: Problem finding source file: " + src1)
             
             i = i + 1
 
+        self.log("copyMixedPlaylist: src:" + src)
         if os.path.exists(src):
+            self.log("copyMixedPlaylist: Source Found")
             if channelNum <> "":
                 fle = "Channel_" + str(channelNum) + ".xsp"
+                self.log("copyMixedPlaylist: fle:" + fle)
             else:
                 fle = os.path.basename(src)
+                self.log("copyMixedPlaylist: fle:" + fle)
                 
             dst = os.path.join(xbmc.translatePath('special://profile/addon_data/' + ADDON_ID + '/presets'), fle)                    
+            self.log("copyMixedPlaylist: dst:" + dst)
 
             try:
+                self.log("copyMixedPlaylist: Copying Playlist")
                 self.copyPlaylist(src, dst)
             except:
+                self.log("copyMixedPlaylist: Unable to copy playlist.", xbmc.LOGERROR)
                 pass
+        self.log("copyMixedPlaylist: Completed")
         
 
     def copyPlaylist(self, src, dst):
-        self.log("Copying Playlist:")
-        self.log("src:" + src)
-        self.log("dst:" + dst)
+        self.log("copyPlaylist: Started")
+        self.log("copyPlaylist: src=" + src)
+        self.log("copyPlaylist: dst=" + dst)
         buffer_size = 1024 * 1024
         if not hasattr(src, 'read'):
             src = open(src, 'rb')
@@ -681,21 +736,25 @@ class presetChannels:
                 break
         src.close()
         dst.close()
+        self.log("copyPlaylist: Completed")
 
 
     def getSmartPlaylistType(self, dom):
-        self.log('getSmartPlaylistType')
-
+        self.log("getSmartPlaylistType: Started")
         try:
             pltype = dom.getElementsByTagName('smartplaylist')
+            self.log("getSmartPlaylistType: pltype=" + str(pltype))
             return pltype[0].attributes['type'].value
         except:
-            self.log("Unable to get the playlist type.", xbmc.LOGERROR)
+            self.log("getSmartPlaylistType: Unable to get the playlist type.", xbmc.LOGERROR)
             return ''
+        self.log("getSmartPlaylistType: Completed")
 
 
     def deletePresetChannels(self):
+        self.log("deletePresetChannels: Started")
         dir = xbmc.translatePath('special://profile/addon_data/' + ADDON_ID + '/presets/')       
+        self.log("deletePresetChannels: dir=" + str(dir))
 
         for filename in os.listdir(dir):
             fle = os.path.join(dir, filename)
@@ -705,6 +764,7 @@ class presetChannels:
                     os.unlink(fle)
             except Exception, e:
                 self.log(e)
+        self.log("deletePresetChannels: Completed")
                         
 
     def fillCustomChannels(self):
@@ -714,6 +774,7 @@ class presetChannels:
         if os.path.exists(xbmc.translatePath('special://profile/playlists/video')):
             self.log("fillCustomChannels: folder exists")
             path = xbmc.translatePath('special://profile/playlists/video')
+            self.log("fillCustomChannels: path=" + str(path))
             for infile in glob.glob( os.path.join(path, 'Channel_*.xsp') ):
                 self.log("fillCustomChannels: found channel file " + str(infile))
                 # let's parse out the channel number
@@ -723,8 +784,8 @@ class presetChannels:
                 bn_parts = bn[0].split("_")                
                 channelNum = bn_parts[1]
                 src = os.path.join(path, infile)
-                self.log("Adding custom channel " + str(channelNum) )
-                self.log("Custom channel playlist: " + src )
+                self.log("fillCustomChannels: Adding custom channel " + str(channelNum) )
+                self.log("fillCustomChannels: Custom channel playlist: " + src )
                 ADDON_SETTINGS.setSetting('custom' + channelNum + 'on', 'true')
                 ADDON_SETTINGS.setSetting('custom' + channelNum, src)
         
@@ -742,6 +803,8 @@ class presetChannels:
                 bn_parts = bn[0].split("_")                
                 channelNum = bn_parts[1]
                 src = os.path.join(path, infile)
+                self.log("fillCustomChannels: Adding custom channel " + str(channelNum) )
+                self.log("fillCustomChannels: Custom channel playlist: " + src )
                 ADDON_SETTINGS.setSetting('custom' + channelNum + 'on', 'true')
                 ADDON_SETTINGS.setSetting('custom' + channelNum, src)
         self.log("fillCustomChannels: Completed")
@@ -752,6 +815,7 @@ class presetChannels:
 
 
     def readPresetChannelConfig(self):
+        self.log("readPresetChannelConfig: Started")
         group1 = str(ADDON_SETTINGS.getSetting('group1'))
         group2 = str(ADDON_SETTINGS.getSetting('group2'))
         group3 = str(ADDON_SETTINGS.getSetting('group3'))
@@ -1339,6 +1403,7 @@ class presetChannels:
         if group13 == "13":
             self.log('Group 13: Custom')
             self.readCustomPresetChannelConfig()
+        self.log("readPresetChannelConfig: Completed")
 
 
 
