@@ -28,7 +28,7 @@ import random
 
 from operator import itemgetter
 from xml.dom.minidom import parse, parseString
-from time import time, localtime, strftime, strptime, mktime
+from time import time, localtime, strftime, strptime, mktime, sleep
 from datetime import datetime, date, timedelta
 from Playlist import Playlist
 from Globals import *
@@ -45,6 +45,7 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
         xbmcgui.WindowXMLDialog.__init__(self, *args, **kwargs)
         self.log('__init__')
         # initialize all variables
+        self.version = "1.0.4"
         self.channels = []
         self.inputChannel = -1
         self.channelLabel = []
@@ -72,6 +73,7 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
     # override the doModal function so we can setup everything first
     def onInit(self):
         self.log('onInit')
+        self.log('Version: ' + str(self.version))
         self.channelLabelTimer = threading.Timer(5.0, self.hideChannelLabel)
         self.infoTimer = threading.Timer(5.0, self.hideInfo)
         self.background = self.getControl(101)
@@ -91,73 +93,28 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
         if self.readConfig() == False:
             return
 
+        self.log("onInit: self.forceReset = " + str(self.forceReset))
         if self.forceReset == True:
+            self.log("onInit: resetChannels")
             self.resetChannels()
-            
-        # set next auto resetChannel time
-        # need to get current datetime in local time
-        currentDateTimeTuple = localtime()
-        # parse out year, month and day so we can computer resetDate
-        cd = datetime(*(currentDateTimeTuple[0:6]))
-        year = cd.strftime('%Y')
-        month = cd.strftime('%m')
-        day = cd.strftime('%d')
-        hour = cd.strftime('%H')
-        minutes = cd.strftime('%M')
-        seconds = cd.strftime('%S')
-        # convert to date object so we can add timedelta in the next step
-        currentDateTime = year + "-" + month + "-" + day + " " + hour + ":" + minutes + ":" + seconds
-        currentDateTime = strptime(currentDateTime,"%Y-%m-%d %H:%M:%S")
-        self.log("currentDateTime=" + str(currentDateTime))
-        currentDate = date(int(year), int(month), int(day))
-        # need to get setting of when to auto reset
-        # Automatic|Every Day|Every Week|Every Month|Never
-        # 0 = Automatic
-        # 1 = Daily
-        # 2 = Weekly
-        # 3 = Monthly
-        # 4 = Never
-        # Daily = Current Date + 1 Day
-        # Weekly = CUrrent Date + 1 Week
-        # Monthly = CUrrent Date + 1 Month
-        resetInterval = ADDON_SETTINGS.getSetting("ChannelResetSetting")
-        self.log("resetInterval=" + str(resetInterval))
-        if resetInterval == "1":
-            # Daily
-            interval = timedelta(days=1)
-        elif resetInterval == "2":
-            # Weekly
-            interval = timedelta(days=7)
-        elif resetInterval == "3":
-            # Monthly
-            interval = timedelta(days=30)
-        # determine resetDate based on current date and interval
-        resetDate = currentDate + interval
-        # need to convert to tuple to be able to parse out components
-        resetDateTuple = strptime(str(resetDate), "%Y-%m-%d")
-        # parse out year, month, and day
-        rd = datetime(*(resetDateTuple[0:3]))
-        year = rd.strftime('%Y')
-        month = rd.strftime('%m')
-        day = rd.strftime('%d')
-        # Time to Reset: 12:00am, 1:00am, 2:00am, etc.
-        # get resetTime setting
-        resetTime = ADDON_SETTINGS.getSetting("ChannelResetSettingTime")
-        # set hour, minutes and seconds
-        hour = resetTime
-        minutes = 0
-        seconds = 0
-        # join components together to form reset date and time
-        resetDateTime = str(year) + "-" + str(month) + "-" + str(day) + " " + str(hour) + ":" + str(minutes) + ":" + str(seconds)
-        resetDateTime = strptime(resetDateTime,"%Y-%m-%d %H:%M:%S")
-        self.log("resetDateTime: " + str(resetDateTime))
         
-        # need to get difference between the two
-        diff = mktime(resetDateTime) - mktime(currentDateTime)
-        self.log("diff: " + str(diff))
+        # set auto reset timer if enabled        
+        self.log("onInit: self.channelResetSetting = " + str(self.channelResetSetting))
+        if self.channelResetSetting > 0 and self.channelResetSetting < 4:
+            if ADDON_SETTINGS.getSetting('nextAutoResetDateTime') == "":
+                self.log("onInit: set next auto reset time")
+                self.setNextAutoResetTime()
+            elif ADDON_SETTINGS.getSetting('nextAutoResetDateTimeInterval') <> ADDON_SETTINGS.getSetting('ChannelResetSetting'):
+                self.log("onInit: reset interval changed. update next auto reset time.")
+                self.setNextAutoResetTime()
+            elif ADDON_SETTINGS.getSetting('nextAutoResetDateTimeResetTime') <> ADDON_SETTINGS.getSetting('ChannelResetSettingTime'):
+                self.log("onInit: reset time changed. update next auto reset time.")
+                self.setNextAutoResetTime()
+            else:
+                self.log("onInit: no change in auto reset time.")            
+            self.log("onInit: setting auto reset time")
+            self.setAutoResetTimer()
         
-        # set timer 
-                
         # store maximun number of channels created
         self.maxChannels = self.findMaxM3us()
         if self.maxChannels == 0:
@@ -167,6 +124,7 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
             self.log('onInit: self.maxChannels = ' + str(self.maxChannels))
 
         # Load channel m3u files
+        self.log("onInit: loadChannels ")
         self.loadChannels()
 
         # check for at least one valid channel
@@ -189,6 +147,7 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
         self.timeStarted = time()
         self.background.setVisible(False)
         self.startSleepTimer()
+        self.startAutoResetTimer()
         self.actionSemaphore.release()        
         self.log('onInit return')
 
@@ -207,6 +166,8 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
         self.log('Show info label on channel change is ' + str(self.infoOnChange))
         self.channelResetSetting = int(ADDON_SETTINGS.getSetting("ChannelResetSetting"))
         self.log('Channel Reset Setting is ' + str(self.channelResetSetting))
+        self.channelResetSettingTime = int(ADDON_SETTINGS.getSetting("ChannelResetSettingTime"))
+        self.log('Channel Reset Setting Time is ' + str(self.channelResetSettingTime))
         self.showChannelBug = ADDON_SETTINGS.getSetting("ShowChannelBug") == "true"
         self.log('Show channel bug - ' + str(self.showChannelBug))
         try:
@@ -214,6 +175,96 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
         except:
             self.lastResetTime = 0
         self.log("readConfig: Completed")
+
+
+    def setNextAutoResetTime(self):
+        # set next auto resetChannel time
+        # need to get current datetime in local time
+        currentDateTimeTuple = localtime()
+        # parse out year, month and day so we can computer resetDate
+        cd = datetime(*(currentDateTimeTuple[0:6]))
+        year = cd.strftime('%Y')
+        month = cd.strftime('%m')
+        day = cd.strftime('%d')
+        hour = cd.strftime('%H')
+        minutes = cd.strftime('%M')
+        seconds = cd.strftime('%S')
+        # convert to date object so we can add timedelta in the next step
+        currentDateTime = year + "-" + month + "-" + day + " " + hour + ":" + minutes + ":" + seconds
+        self.log("setNextAutoResetTime: currentDateTime=" + str(currentDateTime))
+        currentDateTimeTuple = strptime(currentDateTime,"%Y-%m-%d %H:%M:%S")
+        self.log("setNextAutoResetTime: currentDateTimeTuple=" + str(currentDateTimeTuple))
+        currentDate = date(int(year), int(month), int(day))
+        self.log("setNextAutoResetTime: currentDate=" + str(currentDate))
+        # need to get setting of when to auto reset
+        # Automatic|Every Day|Every Week|Every Month|Never
+        # 0 = Automatic
+        # 1 = Daily
+        # 2 = Weekly
+        # 3 = Monthly
+        # 4 = Never
+        # Daily = Current Date + 1 Day
+        # Weekly = CUrrent Date + 1 Week
+        # Monthly = CUrrent Date + 1 Month
+        resetInterval = ADDON_SETTINGS.getSetting("ChannelResetSetting")
+        # Time to Reset: 12:00am, 1:00am, 2:00am, etc.
+        # get resetTime setting
+        resetTime = ADDON_SETTINGS.getSetting("ChannelResetSettingTime")
+        self.log("setNextAutoResetTime: resetInterval=" + str(resetInterval))
+        self.log("setNextAutoResetTime: resetTime=" + str(resetTime))
+
+        if resetInterval == "1":
+            # Daily
+            interval = timedelta(days=1)
+        elif resetInterval == "2":
+            # Weekly
+            interval = timedelta(days=7)
+        elif resetInterval == "3":
+            # Monthly
+            interval = timedelta(days=30)
+
+        # determine resetDate based on current date and interval
+        if resetTime > hour and resetInterval == "1":
+            resetDate = currentDate
+        else:
+            resetDate = currentDate + interval        
+        
+        # need to convert to tuple to be able to parse out components
+        resetDateTuple = strptime(str(resetDate), "%Y-%m-%d")
+        # parse out year, month, and day
+        rd = datetime(*(resetDateTuple[0:3]))
+        year = rd.strftime('%Y')
+        month = rd.strftime('%m')
+        day = rd.strftime('%d')
+        # set hour, minutes and seconds
+        hour = resetTime
+        minutes = 0
+        seconds = 0
+        # join components together to form reset date and time
+        resetDateTime = str(year) + "-" + str(month) + "-" + str(day) + " " + str(hour) + ":" + str(minutes) + ":" + str(seconds)
+        # save next resetDateTime to settings
+        self.log("setNextAutoResetTime: nextAutoResetDateTime: " + str(resetDateTime))
+        ADDON_SETTINGS.setSetting('nextAutoResetDateTime', str(resetDateTime))        
+        ADDON_SETTINGS.setSetting('nextAutoResetDateTimeInterval', str(resetInterval))        
+        ADDON_SETTINGS.setSetting('nextAutoResetDateTimeResetTime', str(resetTime))        
+        
+
+    def setAutoResetTimer(self):
+        # set next auto resetChannel time
+        # need to get current datetime in local time
+        currentDateTimeTuple = localtime()       
+        nextAutoResetDateTime = ADDON_SETTINGS.getSetting('nextAutoResetDateTime')
+        nextAutoResetDateTimeTuple = strptime(nextAutoResetDateTime,"%Y-%m-%d %H:%M:%S")
+        self.log("setResetTimer: currentDateTimeTuple: " + str(currentDateTimeTuple))
+        self.log("setResetTimer: nextAutoResetDateTimeTuple: " + str(nextAutoResetDateTimeTuple))
+        
+        # need to get difference between the two
+        self.autoResetTimeValue = mktime(nextAutoResetDateTimeTuple) - mktime(currentDateTimeTuple)
+        self.log("setResetTimer: resetTimerDiff: " + str(self.autoResetTimeValue))
+        
+        # set timer
+        self.log("setResetTimer: Setting Timer for " + str(self.autoResetTimeValue) + " seconds")
+        self.autoResetTimer = threading.Timer(self.autoResetTimeValue, self.autoResetChannels)
 
 
     def buildPlaylists(self):
@@ -384,7 +435,9 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
             except:
                 pass
 
+        self.log("loadChannel: resetChannel=" + str(resetChannel))
         if resetChannel:
+            self.log("loadChannel: Resetting Channels")
             self.resetChannels()
         self.log("loadChannel: Completed")
 
@@ -1123,6 +1176,77 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
         self.log("deleteCache: Completed")
 
 
+    def countdown(self, secs, interval=1): 
+        while secs > 0: 
+            yield secs 
+            secs = secs - 1 
+            sleep(interval) 
+
+
+    def autoResetChannels(self):
+        # need to allow user to abort the channel reset
+        self.resetDialog = xbmcgui.DialogProgress()
+        self.resetDialog.create("TV Time", "Preparing for Auto Channel Reset")
+        self.resetDialog.update(0, "Preparing for Auto Channel Reset")     
+        if self.resetDialog.iscanceled():
+            self.log("autoResetChannels: auto channel reset Cancelled")
+            self.resetDialog.close()
+            return False
+        progressPercentage = 0
+        for count in self.countdown(10):
+            progressPercentage = progressPercentage + 10
+            self.resetDialog.update(progressPercentage, "Preparing for Auto Channel Reset")     
+        self.resetDialog.close()        
+        if not self.resetDialog.iscanceled():
+            # cleanly shut down TV Time
+            try:
+                if self.autoResetTimer > 0:
+                    if self.autoResetTimer.isAlive():
+                        self.autoResetTimer.cancel()
+            except:
+                pass
+            if xbmc.Player().isPlaying():
+                xbmc.Player().stop()
+            try:
+                ADDON_SETTINGS.setSetting('CurrentChannel', str(self.currentChannel))
+            except:
+                pass
+            # if force reset, delete old cache 
+            self.deleteCache()        
+            # call creatChannels function to rebuild playlists
+            self.buildPlaylists()
+            # load in new playlists to create new m3u files
+            self.loadPlaylists()
+            # reset next auto reset time
+            self.setNextAutoResetTime()
+            # shut everything down
+            try:
+                if self.channelLabelTimer.isAlive():
+                    self.channelLabelTimer.cancel()
+                if self.infoTimer.isAlive():
+                    self.infoTimer.cancel()
+                if self.sleepTimeValue > 0:
+                    if self.sleepTimer.isAlive():
+                        self.sleepTimer.cancel()
+                if self.autoResetTimer > 0:
+                    if self.autoResetTimer.isAlive():
+                        self.autoResetTimer.cancel()
+            except:
+                pass
+            if xbmc.Player().isPlaying():
+                xbmc.Player().stop()
+            if self.timeStarted > 0:
+                for i in range(self.maxChannels):
+                    if self.channels[i].isValid:
+                        ADDON_SETTINGS.setSetting('Channel_' + str(i + 1) + '_time', str(int(time() - self.timeStarted + self.channels[i].totalTimePlayed)))
+            try:
+                ADDON_SETTINGS.setSetting('CurrentChannel', str(self.currentChannel))
+            except:
+                pass        
+            # reinitialize script
+            self.__init__()
+
+
     def resetChannels(self):
         # if force reset, delete old cache 
         self.deleteCache()        
@@ -1130,8 +1254,8 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
         self.buildPlaylists()
         # load in new playlists to create new m3u files
         self.loadPlaylists()
-    
 
+    
     def validateChannels(self):
         found = False
         for m3uNum in range(self.maxChannels):
@@ -1628,6 +1752,22 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
         self.sleepTimer.start()
 
 
+    # Reset the sleep timer
+    def startAutoResetTimer(self):
+        self.log("startAutoResetTimer: Started")
+        self.log("startAutoResetTimer: self.autoResetTimeValue=" + str(self.autoResetTimeValue))
+        if self.autoResetTimeValue == 0:
+            return
+
+        # Cancel the timer if it is still running
+        if self.autoResetTimer.isAlive():
+            self.autoResetTimer.cancel()
+            self.autoResetTimer = threading.Timer(self.resetTimerValue, self.autoResetChannels)
+
+        self.autoResetTimer.start()
+        self.log("startAutoResetTimer: Completed")
+
+
     # This is called when the sleep timer expires
     def sleepAction(self):
         self.log("sleepAction")
@@ -1653,6 +1793,10 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
             if self.sleepTimeValue > 0:
                 if self.sleepTimer.isAlive():
                     self.sleepTimer.cancel()
+
+            if self.autoResetTimer > 0:
+                if self.autoResetTimer.isAlive():
+                    self.autoResetTimer.cancel()
         except:
             pass
 
