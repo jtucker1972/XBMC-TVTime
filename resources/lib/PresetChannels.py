@@ -386,7 +386,7 @@ class presetChannels:
         if len(criterias) > 1:
             for criteria in criterias:
                 # need to add folder path to criteria string
-                criteria = 'Channel_' + criteria + '.xsp'
+                criteria = 'channel_' + criteria + '.xsp'
                 self.addRule(presetChannel, smartplaylist, rule, operator, criteria)
                 x = x + 1
         if random == "true":
@@ -588,7 +588,7 @@ class presetChannels:
         self.log('writepresetChannel: Started')
         self.log('writepresetChannel: channelNum=' + str(channelNum))
         # get path to write to
-        filename = 'Channel_' + str(channelNum) + '.xsp'
+        filename = 'channel_' + str(channelNum) + '.xsp'
         fle = os.path.join(xbmc.translatePath('special://profile/addon_data/' + ADDON_ID + '/presets/'), filename)
         self.log('writepresetChannel: fle=' + str(fle))
         # write xml file
@@ -634,7 +634,7 @@ class presetChannels:
             self.copyMixedPlaylist(src, channelNum)
         else:
             # Copy over main playlist
-            dst = xbmc.translatePath('special://profile/addon_data/' + ADDON_ID + '/presets/Channel_' + str(channelNum) + '.xsp')
+            dst = xbmc.translatePath('special://profile/addon_data/' + ADDON_ID + '/presets/channel_' + str(channelNum) + '.xsp')
             self.log('copyCustomChannel: dst=' + str(dst))
             self.copyPlaylist(src, dst)
         self.log('copyCustomChannel: Completed')
@@ -701,7 +701,7 @@ class presetChannels:
         if os.path.exists(src):
             self.log("copyMixedPlaylist: Source Found")
             if channelNum <> "":
-                fle = "Channel_" + str(channelNum) + ".xsp"
+                fle = "channel_" + str(channelNum) + ".xsp"
                 self.log("copyMixedPlaylist: fle:" + fle)
             else:
                 fle = os.path.basename(src)
@@ -775,7 +775,7 @@ class presetChannels:
             self.log("fillCustomChannels: folder exists")
             path = xbmc.translatePath('special://profile/playlists/video')
             self.log("fillCustomChannels: path=" + str(path))
-            for infile in glob.glob( os.path.join(path, 'Channel_*.xsp') ):
+            for infile in glob.glob( os.path.join(path, 'channel_*.xsp') ):
                 self.log("fillCustomChannels: found channel file " + str(infile))
                 # let's parse out the channel number
                 bn = []
@@ -794,7 +794,7 @@ class presetChannels:
         if os.path.exists(xbmc.translatePath('special://profile/playlists/mixed')):
             self.log("fillCustomChannels: folder exists")
             path = xbmc.translatePath('special://profile/playlists/mixed')
-            for infile in glob.glob( os.path.join(path, 'Channel_*.xsp') ):
+            for infile in glob.glob( os.path.join(path, 'channel_*.xsp') ):
                 self.log("fillCustomChannels: found channel file " + str(infile))
                 # let's parse out the channel number
                 bn = []

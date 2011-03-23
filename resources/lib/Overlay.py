@@ -118,7 +118,7 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
         # store maximun number of channels created
         self.maxChannels = self.findMaxM3us()
         if self.maxChannels == 0:
-            self.Error('Unable to find any channels. Create smart\nplaylists with file names Channel_1, Chanbel_2, etc.')
+            self.Error('Unable to find any channels.')
             return
         else:
             self.log('onInit: self.maxChannels = ' + str(self.maxChannels))
@@ -506,7 +506,7 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
             else:
                 pass
         else:
-            self.log("No channel found in channels.xml for Channel_" + str(m3uNum) + ".m3u")
+            self.log("No channel found in channels.xml for channel_" + str(m3uNum) + ".m3u")
             return False
         self.log("rebuildChannel: Completed")
 
@@ -703,11 +703,11 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
     def getM3uFilename(self, channel):
         self.log("getM3uFilename: Started")
         self.log("getM3uFilename: channel=" + str(channel))
-        self.log(xbmc.translatePath('special://profile/addon_data/' + ADDON_ID + '/cache') + '/Channel_' + str(channel) + '.m3u')
-        if os.path.exists(xbmc.translatePath('special://profile/addon_data/' + ADDON_ID + '/cache') + '/Channel_' + str(channel) + '.m3u'):
+        self.log(xbmc.translatePath('special://profile/addon_data/' + ADDON_ID + '/cache') + '/channel_' + str(channel) + '.m3u')
+        if os.path.exists(xbmc.translatePath('special://profile/addon_data/' + ADDON_ID + '/cache') + '/channel_' + str(channel) + '.m3u'):
             self.log("getM3uFilename: File found")
             self.log("getM3uFilename: Completed")
-            return xbmc.translatePath('special://profile/addon_data/' + ADDON_ID + '/cache') + '/Channel_' + str(channel) + '.m3u'
+            return xbmc.translatePath('special://profile/addon_data/' + ADDON_ID + '/cache') + '/channel_' + str(channel) + '.m3u'
         else:
             self.log("getM3uFilename: File not found")
             self.log("getM3uFilename: Completed")
@@ -717,11 +717,11 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
     def getSmartPlaylistFilename(self, playlistNum):
         self.log("getSmartPlaylistFilename: Started")
         self.log("getSmartPlaylistFilename: " + str(playlistNum))
-        self.log(xbmc.translatePath('special://profile/addon_data/' + ADDON_ID + '/presets') + '/Channel_' + str(playlistNum) + '.xsp')
-        if os.path.exists(xbmc.translatePath('special://profile/addon_data/' + ADDON_ID + '/presets') + '/Channel_' + str(playlistNum) + '.xsp'):
+        self.log(xbmc.translatePath('special://profile/addon_data/' + ADDON_ID + '/presets') + '/channel_' + str(playlistNum) + '.xsp')
+        if os.path.exists(xbmc.translatePath('special://profile/addon_data/' + ADDON_ID + '/presets') + '/channel_' + str(playlistNum) + '.xsp'):
             self.log("getSmartPlaylistFilename: File found")
             self.log("getSmartPlaylistFilename: Completed")
-            return xbmc.translatePath('special://profile/addon_data/' + ADDON_ID + '/presets') + '/Channel_' + str(playlistNum) + '.xsp'
+            return xbmc.translatePath('special://profile/addon_data/' + ADDON_ID + '/presets') + '/channel_' + str(playlistNum) + '.xsp'
         else:
             self.log("getSmartPlaylistFilename: File not found")
             self.log("getSmartPlaylistFilename: Completed")

@@ -1,6 +1,12 @@
 Changelog
 
 
+1.0.6
+    Fixed bug causing script to fail on *nix systems
+
+1.0.5
+    Added ability to schedule when channel resets occur, e.g. Each Day at 1:00am
+
 1.0.4
     Added channel bug setting.
 
