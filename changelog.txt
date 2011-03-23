@@ -1,6 +1,12 @@
 Changelog
 
 
+1.0.7
+    Fixed bug with auto-reset causing script and xbmc to hang
+    Modified update dialog to make it more streamlined and provide more feedback
+    Added channel logos provided by zepfan who thinks they were created by Hitcher
+    Added sranshaft channel logos
+
 1.0.6
     Fixed bug causing script to fail on *nix systems
 

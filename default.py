@@ -31,7 +31,7 @@ import xbmcaddon
 __scriptname__ = "TVTime"
 __author__     = "jtucker1972"
 __url__        = "http://github.com/jtucker1972/XBMC-TVTime"
-__version__    = "1.0.5"
+__version__    = "1.0.7"
 __settings__   = xbmcaddon.Addon(id='script.tvtime')
 __language__   = __settings__.getLocalizedString
 __cwd__        = __settings__.getAddonInfo('path')

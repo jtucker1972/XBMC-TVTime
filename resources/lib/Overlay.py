@@ -35,7 +35,7 @@ from Globals import *
 from Channel import Channel
 from EPGWindow import EPGWindow
 from VideoParser import VideoParser
-
+from decimal import *
 from PresetChannels import *
 
 
@@ -100,6 +100,7 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
         
         # set auto reset timer if enabled        
         self.log("onInit: self.channelResetSetting = " + str(self.channelResetSetting))
+        self.autoResetTimeValue = 0
         if self.channelResetSetting > 0 and self.channelResetSetting < 4:
             if ADDON_SETTINGS.getSetting('nextAutoResetDateTime') == "":
                 self.log("onInit: set next auto reset time")
@@ -272,24 +273,22 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
         # Give some feedback to the user
         self.loadDialog = xbmcgui.DialogProgress()
         self.loadDialog.create("TV Time", "Preparing for Playlist Creation")
-        self.loadDialog.update(0, "Preparing for Playlist Creation")        
+        self.loadDialog.update(25, "Preparing for Playlist Creation")        
         # Setup Preset Channel Object
         self.presetChannels = presetChannels()
         # Auto Fill Custom Config channels
         if ADDON_SETTINGS.getSetting("autoFillCustom") == "true":
-            self.loadDialog.update(25, "Auto Filling Custom Channels")
+            self.loadDialog.update(50, "Auto Filling Custom Channels")
             self.log("buildPlaylists: Auto Filling Custom Channels")
             self.presetChannels.fillCustomChannels()        
         # Load Preset Channels from configuration settings
-        self.loadDialog.update(50, "Reading Channel Management Settings")
+        self.loadDialog.update(75, "Reading Channel Management Settings")
         self.log("buildPlaylists: Reading Channel Management Settings")
         self.presetChannels.readPresetChannelConfig()
-        # Get total number of Preset Channels (maxChannels)
-        self.numPresetChannels = self.presetChannels.findMaxPresetChannels()
-        self.loadDialog.update(75, "Creating " + str(self.numPresetChannels) + " Channel Playlists")
-        self.log("buildPlaylists: Creating " + str(self.numPresetChannels) + " Channel Playlists")
         # Delete Previous Channels
         self.presetChannels.deletePresetChannels()
+        # Get total number of Preset Channels (maxChannels)
+        self.numPresetChannels = self.presetChannels.findMaxPresetChannels()
         self.loadDialog.update(100, "Playlist Creation Prep Complete")
         self.log("buildPlaylists: Playlist Creation Prep Complete")
         # If the user pressed cancel, stop everything and exit
@@ -310,31 +309,38 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
     def loadPlaylists(self):
         self.log("loadPlaylists: Started")
         self.startupTime = time()
-        self.updateDialog.create("TV Time", "Building channel list")
-        self.updateDialog.update(0, "Building channel list")
-        self.log("loadPlaylists: Building channel list")
+        self.updateDialog.create("TV Time", "Building Channels")
+        self.updateDialog.update(0, "Building Channels","","")
+        self.log("loadPlaylists: Building Channels")
         self.background.setVisible(True)
         self.channelList = []
-        playlistNum = 0
+        getcontext().prec = 4
+        progressIncrement = Decimal(100) / Decimal(self.numPresetChannels)
+        self.updateProgressPercentage = 0
         # Go through all channels, create their arrays, and setup the new playlist
+        playlistNum = 0
         for playlistNum in range(self.numPresetChannels):
-            playlistNum = playlistNum + 1
-            self.updateDialog.update(playlistNum * 100 // self.numPresetChannels, "Building channel " + str(playlistNum))
-            self.log("loadPlaylists: Building channel " + str(playlistNum))
-            self.channels.append(Channel())
-            self.buildChannel(playlistNum)
-            # If the user pressed cancel, stop everything and exit
-            if self.updateDialog.iscanceled():
-                self.log('loadPlaylists: Update channels cancelled')
-                self.updateDialog.close()
-                self.end()
-                return False
+            if not self.updateDialog.iscanceled():
+                playlistNum = playlistNum + 1
+                self.updateProgressPlaylistNum = playlistNum # referenced when updating the dialog window in other functions
+                self.updateProgressPercentage = Decimal(self.updateProgressPercentage) + Decimal(progressIncrement)
+                self.updateDialog.update(self.updateProgressPercentage, "Building channel " + str(playlistNum),"","")
+                self.log("loadPlaylists: Building Channel " + str(playlistNum))
+                self.channels.append(Channel())
+                self.buildChannel(playlistNum)
+
+        # If the user pressed cancel, stop everything and exit
+        if self.updateDialog.iscanceled():
+            self.log('loadPlaylists: Build Channels Cancelled')
+            self.updateDialog.close()
+            self.end()
+            return False
 
         # write channelList settings to xml file for reference when rebuilding a channel
         self.log("loadPlaylists: length of channelList: " + str(len(self.channelList)))
         self.buildChannelsXML(self.channelList)
 
-        self.updateDialog.update(100, "Build complete")
+        self.updateDialog.update(100, "Build complete","","")
         self.log("loadPlaylists: Build complete")
         xbmc.Player().stop()
         self.updateDialog.close()
@@ -350,17 +356,23 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
         self.log("loadChannels: Started")
         self.startupTime = time()
         self.updateDialog.create("TV Time", "Loading channel list")
-        self.updateDialog.update(0, "Loading channel list")
+        self.updateDialog.update(0, "Loading channel list","","")
         self.log("loadChannels: Loading channel list")
         self.background.setVisible(True)
         # Go through all channels, create their arrays, and setup the new playlist
+        getcontext().prec = 4
+        progressIncrement = Decimal(100) / Decimal(self.maxChannels)
+        progressPercentage = 0
         for m3uNum in range(self.maxChannels):
-            self.updateDialog.update(self.maxChannels * 100 // self.maxChannels, "Loading channel " + str(m3uNum + 1))
-            self.log("loadChannels: Loading channel " + str(m3uNum + 1))
+            self.log("loadChannels: Loading channel " + str(m3uNum))
+            channelName = str(self.getSmartPlaylistName(self.getSmartPlaylistFilename(self.getChannelPlaylistNum(m3uNum))))
+            self.log("loadChannels: channelName=" + str(channelName))
+            progressPercentage = Decimal(progressPercentage) + Decimal(progressIncrement)
+            self.updateDialog.update(progressPercentage, "Loading channel " + str(m3uNum), channelName,"")
             # create new channel
             self.channels.append(Channel())
-            self.log("loadChannel: channel=" + str(m3uNum + 1))
-            self.loadChannel(m3uNum + 1)
+            self.log("loadChannel: channel=" + str(m3uNum))
+            self.loadChannel(m3uNum)
             # If the user pressed cancel, stop everything and exit
             if self.updateDialog.iscanceled():
                 self.log('loadChannel: Update channels cancelled')
@@ -370,7 +382,7 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
         ADDON_SETTINGS.setSetting('ForceChannelReset', 'false')
         self.forceReset = False
 
-        self.updateDialog.update(100, "Load complete")
+        self.updateDialog.update(100, "Load complete","","")
         self.log("loadChannel: Load complete")
         xbmc.Player().stop()
         self.updateDialog.close()
@@ -446,6 +458,7 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
     def buildChannel(self, playlistNum):
         self.log("buildChannel: Started")
         self.log("buildChannel: playlistNum=" + str(playlistNum))
+        self.updateDialog.update(self.updateProgressPercentage, "Building channel " + str(self.updateProgressPlaylistNum),"Starting","")
         # now let's create new channels
         if self.makeChannelList(playlistNum) == True:
             self.log("buildChannel: makeChannelList=True")
@@ -454,7 +467,9 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
             self.log("buildChannel: channelNum=" + str(channelNum))            
             # keep a list of which playlists are associated with which channels
             self.channelList.append(playlistNum)
+            # add new channel to EPG
             self.log("buildChannel: Add channel to EPG")
+            self.updateDialog.update(self.updateProgressPercentage, "Building channel " + str(self.updateProgressPlaylistNum),"Adding Channel to EPG","")
             if self.channels[channelNum - 1].setPlaylist(CHANNELS_LOC + 'channel_' + str(channelNum) + '.m3u') == True:
                 self.channels[channelNum - 1].totalTimePlayed = 0
                 self.log("buildChannel: totalTimePlayed=0")          
@@ -465,11 +480,12 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
                 returnval = True
                 ADDON_SETTINGS.setSetting('Channel_' + str(channelNum) + '_time', '0')
             self.channels[channelNum - 1].name = self.getSmartPlaylistName(self.getSmartPlaylistFilename(playlistNum))
+            self.updateDialog.update(self.updateProgressPercentage, "Building channel " + str(self.updateProgressPlaylistNum),"Adding Channel to EPG",self.channels[channelNum - 1].name)
             self.log("buildChannel: name=" + str(self.channels[channelNum - 1].name))
             return returnval
             # load new channel
+            self.updateDialog.update(self.updateProgressPercentage, "Building channel " + str(self.updateProgressPlaylistNum),"Completed","")
             self.log("buildChannel: Loading new channel")
-            self.loadChannel(channelNum)
         else:
             pass
         self.log("buildChannel: Completed")
@@ -627,6 +643,8 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
         self.log("makeChannelList: Started")
         self.log('makeChannelList ' + str(playlistNum))        
         fle = self.getSmartPlaylistFilename(playlistNum)
+        filename = os.path.basename(fle)
+        self.updateDialog.update(self.updateProgressPercentage, "Building channel " + str(self.updateProgressPlaylistNum),"Getting SmartPlaylist",str(filename))
         self.log("makeChannelList: fle=" + str(fle))
         if len(fle) == 0:
             self.log("makeChannelList: Unable to locate the playlist for channel " + str(playlistNum), xbmc.LOGERROR)
@@ -644,27 +662,33 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
             return False
         xml.close()        
         if self.getSmartPlaylistType(dom) == 'mixed':
+            self.updateDialog.update(self.updateProgressPercentage, "Building channel " + str(self.updateProgressPlaylistNum),"Found Mixed SmartPlaylist","")
             self.fileLists = []
             self.level = 0
             self.fileLists = self.buildMixedFileLists(fle)            
             if not "movies" in self.fileLists and not "episodes" in self.fileLists:
                 self.log("makeChannelList: mix tvshow channel")
+                self.updateDialog.update(self.updateProgressPercentage, "Building channel " + str(self.updateProgressPlaylistNum),"Found Mixed SmartPlaylist","Building Mixed TV Show Channel")
                 fileList = self.buildMixedTVShowFileList(self.fileLists)
             else:
+                self.updateDialog.update(self.updateProgressPercentage, "Building channel " + str(self.updateProgressPlaylistNum),"Found Mixed SmartPlaylist","Building Mixed Episode & Movie Channel")
                 fileList = self.buildMixedFileList(self.fileLists)
         else:
+            self.updateDialog.update(self.updateProgressPercentage, "Building channel " + str(self.updateProgressPlaylistNum),"Found SmartPlaylist","")
             fileList = self.buildFileList(fle)
 
         try:
             order = dom.getElementsByTagName('order')
             self.log("makeChannelList: order=" + str(order))
             if order[0].childNodes[0].nodeValue.lower() == 'random':
+                self.updateDialog.update(self.updateProgressPercentage, "Building channel " + str(self.updateProgressPlaylistNum),"Randomizing Channel Files","")
                 random.shuffle(fileList)
         except:
             pass
         
         # check if fileList contains files
         if len(fileList) == 0:
+            self.updateDialog.update(self.updateProgressPercentage, "Building channel " + str(self.updateProgressPlaylistNum),"No Files Found for Channel...Skipping","")
             self.log("makeChannelList: Playlist returned no files", xbmc.LOGERROR)
             return False
         else:
@@ -674,7 +698,6 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
                 m3uNum = self.nextM3uChannelNum
                 self.log("makeChannelList: m3uNum=" + str(m3uNum))
                 self.log("makeChannelList: self.nextM3uChannelNum: " + str(self.nextM3uChannelNum))
-            
             if self.writeM3u(m3uNum, fileList) == True:
                 return True
             else:
@@ -689,6 +712,7 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
         except:
             self.Error('writeM3u: Unable to open the cache file ' + CHANNELS_LOC + 'channel_' + str(channelNum) + '.m3u', xbmc.LOGERROR)
             return False        
+        self.updateDialog.update(self.updateProgressPercentage, "Building channel " + str(self.updateProgressPlaylistNum),"Writing Channel File to Cache","")            
         self.log("writeM3u: created m3u file " + CHANNELS_LOC + "channel_" + str(channelNum) + ".m3u successfully") 
         channelplaylist.write("#EXTM3U\n")
         fileList = fileList[:250]
@@ -777,21 +801,20 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
 
     def buildFileList(self, dir_name, media_type="video", recursive="TRUE"):
         self.log("buildFileList: Started")
+        self.updateDialog.update(self.updateProgressPercentage, "Building channel " + str(self.updateProgressPlaylistNum),"Querying XBMC Database...please wait","")
         fileList = []
         json_query = '{"jsonrpc": "2.0", "method": "Files.GetDirectory", "params": {"directory": "%s", "media": "%s", "recursive": "%s", "fields":["duration","tagline","showtitle","album","artist","plot"]}, "id": 1}' % ( self.escapeDirJSON( dir_name ), media_type, recursive )
         json_folder_detail = xbmc.executeJSONRPC(json_query)
         self.log(json_folder_detail)
         file_detail = re.compile( "{(.*?)}", re.DOTALL ).findall(json_folder_detail)
-
+        self.updateDialog.update(self.updateProgressPercentage, "Building channel " + str(self.updateProgressPlaylistNum),"Processing Results","")
         numFiles = len(file_detail)
         progressIncrement = 100/numFiles
         progressPercentage = 0
-        self.loadDialog.update(0, "Building Channel Filelist")
+        fileNum = 1
         for f in file_detail:
-            fileNum = 1
             progressPercentage = progressPercentage + progressIncrement
-            self.loadDialog.update(progressPercentage, "Adding Files")
-
+            self.updateDialog.update(self.updateProgressPercentage, "Building channel " + str(self.updateProgressPlaylistNum),"Analyzing File " + str(fileNum),"")
             match = re.search('"file" *: *"(.*?)",', f)
             if match:
                 if(match.group(1).endswith("/") or match.group(1).endswith("\\")):
@@ -806,7 +829,7 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
                         dur = 0
 
                     if dur == 0:
-                        self.loadDialog.update(progressPercentage, "Getting Video Durations...please be patient")
+                        self.updateDialog.update(self.updateProgressPercentage, "Building channel " + str(self.updateProgressPlaylistNum),"Analyzing File " + str(fileNum),"Getting Video Duration")
                         self.log("buildFileList: Getting Video Durations")
                         dur = self.videoParser.getVideoLength(match.group(1).replace("\\\\", "\\"))
                         self.log("buildFileList: dur=" + str(dur))
@@ -814,16 +837,13 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
                     try:
                         if dur > 0:
                             title = re.search('"label" *: *"(.*?)"', f)
-                            self.log("buildFileList: title=" + str(title))
                             tmpstr = str(dur) + ','
                             showtitle = re.search('"showtitle" *: *"(.*?)"', f)
-                            self.log("buildFileList: showtitle=" + str(showtitle))
                             plot = re.search('"plot" *: *"(.*?)",', f)
                             if plot == None:
                                 theplot = ""
                             else:
                                 theplot = plot.group(1)
-                            self.log("buildFileList: theplot=" + str(theplot))
                             # This is a TV show
                             if showtitle != None:
                                 tmpstr += showtitle.group(1) + "//" + title.group(1) + "//" + theplot
@@ -831,21 +851,19 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
                                 tmpstr += title.group(1) + "//"
                                 album = re.search('"album" *: *"(.*?)"', f)
                                 # This is a movie
-                                self.log("buildFileList: This is a movie")
                                 if album == None:
                                     tagline = re.search('"tagline" *: *"(.*?)"', f)
-                                    self.log("buildFileList: tagline=" + str(tagline))
                                     if tagline != None:
                                         tmpstr += tagline.group(1)
                                     tmpstr += "//" + theplot
                                 else:
                                     artist = re.search('"artist" *: *"(.*?)"', f)
-                                    self.log("buildFileList: artist=" + str(artist))
                                     tmpstr += album.group(1) + "//" + artist.group(1)
                             tmpstr = tmpstr[:600]
                             tmpstr = tmpstr.replace("\\n", " ").replace("\\r", " ").replace("\\\"", "\"")
                             tmpstr = tmpstr + '\n' + match.group(1).replace("\\\\", "\\")
                             fileList.append(tmpstr)
+                            self.updateDialog.update(self.updateProgressPercentage, "Building channel " + str(self.updateProgressPlaylistNum),"Adding File " + str(fileNum),"")
                     except:
                         pass
             else:
@@ -863,6 +881,7 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
         numTotalItems = 0
         # neeed to grab one episode from each list until we reach channel limit
         self.log("buildMixedTVShowFileList: fileLists Length=" + str(len(fileLists)))
+        self.updateDialog.update(self.updateProgressPercentage, "Building channel " + str(self.updateProgressPlaylistNum),"Found Mixed SmartPlaylist","Processing " + str(len(fileLists)) + " Playlists")
         # get fileList sizes
         fl = 0 
         for fl in range(len(fileLists)):
@@ -887,6 +906,7 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
         f = 0
         for f in range(len(fileList)):
             self.log("buildMixedTVShowFileList: fileList item: " + str(fileList[f]))
+            self.updateDialog.update(self.updateProgressPercentage, "Building channel " + str(self.updateProgressPlaylistNum),"Found Mixed SmartPlaylist","Adding " + str(fileList[f]) + " to channel file list")
             f = f + 1
 
         self.log("buildMixedTVShowFileList: fileList contains " + str(len(fileList)) + " items")
@@ -914,6 +934,7 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
 
         # create seperate lists for each type
         for i in range(len(fileLists)):
+            self.updateDialog.update(self.updateProgressPercentage, "Building channel " + str(self.updateProgressPlaylistNum),"Found Mixed SmartPlaylist","Sorting files by type")
             if fileLists[i].type == "movies":
                 self.log("buildMixedFileList: movie list found: " + str(i))
                 if int(movieIndex) == 999:
@@ -987,6 +1008,7 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
         episodeSeq = episodeList[0:numEpisodes]
         tvshowSeq = tvshowList[0:numTVShows]
 
+        self.updateDialog.update(self.updateProgressPercentage, "Building channel " + str(self.updateProgressPlaylistNum),"Found Mixed SmartPlaylist","Creating channel file list")
         # build the final fileList for the channel
         if int(movieIndex) < int(episodeIndex) and int(movieIndex) < tvshowIndex:
             # add movie files first
@@ -1056,6 +1078,7 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
     def buildMixedFileLists(self, src):
         self.log("buildMixedFileLists: Started")
         self.log("buildMixedFileLists: src=" + str(src))
+        self.updateDialog.update(self.updateProgressPercentage, "Building channel " + str(self.updateProgressPlaylistNum),"Mixed Channel","")
         dom1 = self.presetChannels.getPlaylist(src)
         pltype = self.getSmartPlaylistType(dom1)
 

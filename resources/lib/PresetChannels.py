@@ -139,20 +139,25 @@ class presetChannels:
 
         # add some feedback to the user on the progress
         self.loadDialog = xbmcgui.DialogProgress()
-        self.loadDialog.create("TV Time", "Create Channel Playlists")
-        self.loadDialog.update(0, "Creating Channel Playlists")        
+        self.loadDialog.create("TV Time", "Create Channel SmartPlaylists")
+        self.loadDialog.update(0, "Creating Channel SmartPlaylists")        
 
         # set the decimal precision
         getcontext().prec = 4
-        progressIncrement = Decimal(100) / Decimal(numPresetChannels)
+        progressIncrement = Decimal(100) / Decimal(numPresetChannels+1)
         progressPercentage = 0
-        while (channelNum < numPresetChannels + 1):
-            self.log('Build Preset Channel #:' + str(channelNum))
-            self.buildPresetChannel(channelNum)
+        self.log("buildPresetChannels: numPresetChannels=" + str(numPresetChannels))
+        while (channelNum < numPresetChannels+1):
             progressPercentage = Decimal(progressPercentage) + Decimal(progressIncrement)
-            self.loadDialog.update(progressPercentage, "Creating Channel Playlist " + str(channelNum))
+            channelName = self.presetChannels[channelNum-1].name
+            self.loadDialog.update(progressPercentage, "Creating Channel " + str(channelNum) + " of " + str(numPresetChannels) + " SmartPlaylists", channelName)
+            self.log('Build Preset Channel #:' + str(channelNum))
+            self.log('Build Preset Channel Name:' + str(channelName))
+            self.buildPresetChannel(channelNum)
             channelNum = channelNum + 1
-
+            self.log("buildPresetChannels: progressPercentage=" + str(progressPercentage))
+        progressPercentage = 100
+        self.loadDialog.update(progressPercentage, "Creating Channel Playlists Complete")
         # If the user pressed cancel, stop everything and exit
         if self.loadDialog.iscanceled():
             self.log('Create Channel Playlists Cancelled')
@@ -181,7 +186,6 @@ class presetChannels:
         numepisodes = self.presetChannels[channelNum-1].numepisodes
         nummovies = self.presetChannels[channelNum-1].nummovies
 
-        self.log("#########################################################")
         self.log("buildPresetChannel:" + str(channelNum))
         self.log("type:" + str(type))
         self.log("name:" + str(name))
@@ -198,7 +202,6 @@ class presetChannels:
         self.log("resolution:" + str(resolution))
         self.log("numepisodes:" + str(numepisodes))
         self.log("nummovies:" + str(nummovies))
-        self.log("#########################################################")
 
         playlists = []
         mixedplaylists = []

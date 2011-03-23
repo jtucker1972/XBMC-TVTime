@@ -141,7 +141,7 @@
         <setting id="abc-family-name" type="text" visible="eq(-1,true)" label="30081" default="ABC family" />
         <setting type="sep"/>
         <setting id="adult-swim" type="bool" label="30298" default="false" />
-        <setting id="adult-swim-name" type="text" visible="eq(-1,true)" label="30081" default="[adult-swim]" />
+        <setting id="adult-swim-name" type="text" visible="eq(-1,true)" label="30081" default="[adult swim]" />
         <setting type="sep"/>
         <setting id="amc" type="bool" label="30203" default="false" />
         <setting id="amc-name" type="text" visible="eq(-1,true)" label="30081" default="AMC" />
@@ -1466,7 +1466,7 @@
         <setting id="mixed-fantasy-name" type="text" visible="eq(-1,true)" label="30081" default="Fantasy Mix" />
         <setting type="sep"/>
         <setting id="mixed-science-fiction" type="bool" label="30707" default="false" />
-        <setting id="mixed-science-name" type="text" visible="eq(-1,true)" label="30081" default="Sci-Fi Mix" />
+        <setting id="mixed-science-fiction-name" type="text" visible="eq(-1,true)" label="30081" default="Sci-Fi Mix" />
         <setting type="sep"/>
         <setting id="mixed-sport" type="bool" label="30708" default="false" />
         <setting id="mixed-sport-name" type="text" visible="eq(-1,true)" label="30081" default="Sport Mix" />
