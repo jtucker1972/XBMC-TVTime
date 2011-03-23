@@ -45,7 +45,7 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
         xbmcgui.WindowXMLDialog.__init__(self, *args, **kwargs)
         self.log('__init__')
         # initialize all variables
-        self.version = "1.0.5"
+        self.version = "1.0.7"
         self.channels = []
         self.inputChannel = -1
         self.channelLabel = []
