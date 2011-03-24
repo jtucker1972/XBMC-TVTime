@@ -29,12 +29,23 @@ def log(msg, level = xbmc.LOGDEBUG):
 
 
 ADDON_ID = 'script.tvtime'
+ADDON_VERSION = '1.0.8'
 ADDON_SETTINGS = xbmcaddon.Addon(id=ADDON_ID)
 ADDON_INFO = ADDON_SETTINGS.getAddonInfo('path')
 
 TIMEOUT = 15 * 1000
 
 IMAGES_LOC = xbmc.translatePath(os.path.join(ADDON_INFO, 'resources', 'images')) + '/'
+
+if ADDON_SETTINGS.getSetting("CustomChannelLogoFolder") == "true":
+    if ADDON_SETTINGS.getSetting("ChannelLogoFolder") == "":
+        LOGOS_LOC = xbmc.translatePath(os.path.join(ADDON_INFO, 'resources', 'logos')) + '/'
+    else:
+        LOGOS_LOC = xbmc.translatePath(ADDON_SETTINGS.getSetting("ChannelLogoFolder")) + '/'
+else:
+    LOGOS_LOC = xbmc.translatePath(os.path.join(ADDON_INFO, 'resources', 'logos')) + '/'
+
+
 CHANNELS_LOC = xbmc.translatePath('special://profile/addon_data/' + ADDON_ID + '/cache/')
 PRESETS_LOC = xbmc.translatePath('special://profile/addon_data/' + ADDON_ID + '/presets/')
 

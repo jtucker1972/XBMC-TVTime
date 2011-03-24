@@ -1,6 +1,9 @@
 Changelog
 
 
+1.0.8
+    Added ability to specify a custom Channel Logo Folder in Settings
+
 1.0.7
     Fixed bug with auto-reset causing script and xbmc to hang
     Modified update dialog to make it more streamlined and provide more feedback

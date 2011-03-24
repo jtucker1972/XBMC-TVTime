@@ -45,7 +45,6 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
         xbmcgui.WindowXMLDialog.__init__(self, *args, **kwargs)
         self.log('__init__')
         # initialize all variables
-        self.version = "1.0.7"
         self.channels = []
         self.inputChannel = -1
         self.channelLabel = []
@@ -73,7 +72,7 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
     # override the doModal function so we can setup everything first
     def onInit(self):
         self.log('onInit')
-        self.log('Version: ' + str(self.version))
+        self.log('Version: ' + str(ADDON_VERSION))
         self.channelLabelTimer = threading.Timer(5.0, self.hideChannelLabel)
         self.infoTimer = threading.Timer(5.0, self.hideInfo)
         self.background = self.getControl(101)
@@ -1567,7 +1566,7 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
         self.getControl(503).setLabel(self.channels[self.currentChannel - 1].getItemTitle(position))
         self.getControl(504).setLabel(self.channels[self.currentChannel - 1].getItemEpisodeTitle(position))
         self.getControl(505).setLabel(self.channels[self.currentChannel - 1].getItemDescription(position))
-        self.getControl(506).setImage(IMAGES_LOC + self.channels[self.currentChannel - 1].name + '.png')
+        self.getControl(506).setImage(LOGOS_LOC + self.channels[self.currentChannel - 1].name + '.png')
         self.log('setShowInfo return')
 
 
@@ -1605,7 +1604,7 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
 
         if self.showChannelBug == True:
             try:
-                self.getControl(103).setImage(IMAGES_LOC + self.channels[self.currentChannel - 1].name + '.png')
+                self.getControl(103).setImage(LOGOS_LOC + self.channels[self.currentChannel - 1].name + '.png')
             except:
                 pass
         ##

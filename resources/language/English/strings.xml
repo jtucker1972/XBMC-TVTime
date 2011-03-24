@@ -8,6 +8,8 @@
     <string id="30006">Auto Fill Custom Channels</string>
     <string id="30007">Hour to reset channels</string>
     <string id="30008">Show channel logo over playing video</string>
+    <string id="30009">Enable Channel Logo Folder</string>
+    <string id="30010">Select Folder</string>
 
     <string id="30057">Mixed TV Shows are always ordered by airdate ascending.</string>
     <string id="30058">Note: Random setting doesn't affect Mixed TV Show Channels.</string>
