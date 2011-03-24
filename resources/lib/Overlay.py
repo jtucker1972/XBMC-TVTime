@@ -92,11 +92,6 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
         if self.readConfig() == False:
             return
 
-        self.log("onInit: self.forceReset = " + str(self.forceReset))
-        if self.forceReset == True:
-            self.log("onInit: resetChannels")
-            self.resetChannels()
-        
         # set auto reset timer if enabled        
         self.log("onInit: self.channelResetSetting = " + str(self.channelResetSetting))
         self.autoResetTimeValue = 0
@@ -114,6 +109,13 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
                 self.log("onInit: no change in auto reset time.")            
             self.log("onInit: setting auto reset time")
             self.setAutoResetTimer()
+        
+        # check for force reset
+        self.resetChannelActive = False
+        self.log("onInit: self.forceReset = " + str(self.forceReset))
+        if self.forceReset == True:
+            self.log("onInit: resetChannels")
+            self.resetChannels()
         
         # store maximun number of channels created
         self.maxChannels = self.findMaxM3us()
@@ -426,23 +428,23 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
                     if self.channelResetSetting == 0 and self.channels[channel].totalTimePlayed > self.channels[channel].getTotalDuration():
                         resetChannel = True
                         self.log("loadChannel: resetChannel=True")
-                    if self.channelResetSetting > 0 and self.channelResetSetting < 4:
-                        timedif = time() - self.lastResetTime
-                        if self.channelResetSetting == 1 and timedif > (60 * 60 * 24): # 1 day
-                            resetChannel = True
-                            self.log("loadChannel: resetChannel=True")
-                        if self.channelResetSetting == 2 and timedif > (60 * 60 * 24 * 7): # 7 days
-                            resetChannel = True
-                            self.log("loadChannel: resetChannel=True")
-                        if self.channelResetSetting == 3 and timedif > (60 * 60 * 24 * 30): # 30 days
-                            resetChannel = True
-                            self.log("loadChannel: resetChannel=True")
-                        if timedif < 0:
-                            resetChannel = True
-                            self.log("loadChannel: resetChannel=True")
-                        if resetChannel:
-                            ADDON_SETTINGS.setSetting('LastResetTime', str(int(time())))
-                            self.log("loadChannel: LastResetTime=" + str(int(time())))
+                    #if self.channelResetSetting > 0 and self.channelResetSetting < 4:
+                    #    timedif = time() - self.lastResetTime
+                    #    if self.channelResetSetting == 1 and timedif > (60 * 60 * 24): # 1 day
+                    #        resetChannel = True
+                    #        self.log("loadChannel: resetChannel=True")
+                    #    if self.channelResetSetting == 2 and timedif > (60 * 60 * 24 * 7): # 7 days
+                    #        resetChannel = True
+                    #        self.log("loadChannel: resetChannel=True")
+                    #    if self.channelResetSetting == 3 and timedif > (60 * 60 * 24 * 30): # 30 days
+                    #        resetChannel = True
+                    #        self.log("loadChannel: resetChannel=True")
+                    #    if timedif < 0:
+                    #        resetChannel = True
+                    #        self.log("loadChannel: resetChannel=True")
+                    #    if resetChannel:
+                    #        ADDON_SETTINGS.setSetting('LastResetTime', str(int(time())))
+                    #        self.log("loadChannel: LastResetTime=" + str(int(time())))
             except:
                 pass
 
@@ -1270,13 +1272,25 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
 
 
     def resetChannels(self):
-        # if force reset, delete old cache 
-        self.deleteCache()        
-        # call creatChannels function to rebuild playlists
-        self.buildPlaylists()
-        # load in new playlists to create new m3u files
-        self.loadPlaylists()
-
+        # we only want one reset occuring at a time so let's put a check in
+        if self.resetChannelActive == False:
+            self.log("resetChannels: Started")
+            ADDON_SETTINGS.setSetting('LastResetTime', str(int(time())))
+            self.log("resetChannels: LastResetTime=" + str(int(time())))
+            # reset started
+            self.resetChannelActive == True
+            # if force reset, delete old cache 
+            self.deleteCache()        
+            # call creatChannels function to rebuild playlists
+            self.buildPlaylists()
+            # load in new playlists to create new m3u files
+            self.loadPlaylists()
+            # reset finished
+            self.resetChannelActive == False
+            self.log("resetChannels: Completed")
+        else:
+            self.log("resetChannels: Reset Channels Already Running")
+            
     
     def validateChannels(self):
         found = False
