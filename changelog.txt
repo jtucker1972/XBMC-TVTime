@@ -1,6 +1,9 @@
 Changelog
 
 
+1.0.10
+    Fixed bug where channel m3u filenames were not being set correctly when auto reset is run.
+
 1.0.9
     Fixed bug where multiple resets could be triggered simultaneously.  This caused an issue where script would report Unable to find any channels.
 

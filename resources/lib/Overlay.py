@@ -59,7 +59,7 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
         self.showChannelBug = False
         self.nextM3uChannelNum = 0
         random.seed()
-
+        
         for i in range(3):
             self.channelLabel.append(xbmcgui.ControlImage(50 + (50 * i), 50, 50, 50, IMAGES_LOC + 'solid.png', colorDiffuse='0xAA00ff00'))
             self.addControl(self.channelLabel[i])
@@ -459,6 +459,7 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
     def buildChannel(self, playlistNum):
         self.log("buildChannel: Started")
         self.log("buildChannel: playlistNum=" + str(playlistNum))
+        self.log("buildChannel: self.nextM3uChannelNum=" + str(self.nextM3uChannelNum))
         self.updateDialog.update(self.updateProgressPercentage, "Building channel " + str(self.updateProgressPlaylistNum),"Starting","")
         # now let's create new channels
         if self.makeChannelList(playlistNum) == True:
@@ -1277,6 +1278,8 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
             self.log("resetChannels: Started")
             ADDON_SETTINGS.setSetting('LastResetTime', str(int(time())))
             self.log("resetChannels: LastResetTime=" + str(int(time())))
+            # reset nextM3uChannelNum back to 0
+            self.nextM3uChannelNum = 0
             # reset started
             self.resetChannelActive == True
             # if force reset, delete old cache 

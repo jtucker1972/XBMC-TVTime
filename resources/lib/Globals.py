@@ -29,7 +29,7 @@ def log(msg, level = xbmc.LOGDEBUG):
 
 
 ADDON_ID = 'script.tvtime'
-ADDON_VERSION = '1.0.9'
+ADDON_VERSION = '1.0.10'
 ADDON_SETTINGS = xbmcaddon.Addon(id=ADDON_ID)
 ADDON_INFO = ADDON_SETTINGS.getAddonInfo('path')
 
