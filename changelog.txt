@@ -1,6 +1,9 @@
 Changelog
 
 
+1.0.11
+    Added Night Skin
+
 1.0.10
     Fixed bug where channel m3u filenames were not being set correctly when auto reset is run.
 
