@@ -218,10 +218,11 @@ class presetChannels:
                 for criteria in criterias:
                     channelNum_x = str(channelNum) + '_' + str(x+1)
                     criteria1 = criteria
+                    playlistname = criteria
                     self.log('Creating episode playlist for ' + rule1 + ' ' + operator1 + ' ' + criteria1)
                     # for each criteria, create an episode playlist for the mixed channel
                     # Channel_X_x
-                    self.buildPlaylist(channelNum_x, type, name, rule1, operator1, operator2, criteria1, criteria2, limit, random, numepisodes, nummovies, unwatched, nospecials, resolution)
+                    self.buildPlaylist(channelNum_x, type, playlistname, rule1, operator1, operator2, criteria1, criteria2, limit, random, numepisodes, nummovies, unwatched, nospecials, resolution)
                     # combine episode playlists into a mixed playlist
                     playlists.append(channelNum_x)
                     x = x + 1
@@ -247,10 +248,11 @@ class presetChannels:
                 for criteria in criterias:
                     channelNum_x = str(channelNum) + '_' + str(x+1)
                     criteria1 = criteria
+                    playlistname = criteria
                     self.log('Creating movie playlist for ' + rule1 + ' ' + operator1 + ' ' + criteria1)
                     # for each criteria, create an episode playlist for the mixed channel
                     # Channel_X_x
-                    self.buildPlaylist(channelNum_x, type, name, rule1, operator1, operator2, criteria1, criteria2, limit, random, numepisodes, nummovies, unwatched, nospecials, resolution)
+                    self.buildPlaylist(channelNum_x, type, playlistname, rule1, operator1, operator2, criteria1, criteria2, limit, random, numepisodes, nummovies, unwatched, nospecials, resolution)
                     # combine episode playlists into a mixed playlist
                     playlists.append(channelNum_x)
                     x = x + 1
@@ -282,8 +284,9 @@ class presetChannels:
                     # Channel_X_t_x
                     type = 'episodes'
                     criteria1 = criteria
+                    playlistname = criteria
                     limit = numepisodes
-                    self.buildPlaylist(channelNum_x, type, name, rule1, operator1, operator2, criteria1, criteria2, limit, random, numepisodes, nummovies, unwatched, nospecials, resolution)
+                    self.buildPlaylist(channelNum_x, type, playlistname, rule1, operator1, operator2, criteria1, criteria2, limit, random, numepisodes, nummovies, unwatched, nospecials, resolution)
                     playlists.append(channelNum_x)
                     x = x + 1
                 # Combine playlists into a mixed playlist
@@ -312,9 +315,10 @@ class presetChannels:
                     channelNum_x = str(channelNum_t) + '_' + str(x+1)
                     type = 'movies'
                     criteria1 = criteria
+                    playlistname = criteria
                     limit = nummovies
                     self.log('Creating movie playlist')
-                    self.buildPlaylist(channelNum_x, type, name, rule2, operator1, operator2, criteria1, criteria2, limit, random, numepisodes, nummovies, unwatched, nospecials, resolution)
+                    self.buildPlaylist(channelNum_x, type, playlistname, rule2, operator1, operator2, criteria1, criteria2, limit, random, numepisodes, nummovies, unwatched, nospecials, resolution)
                     playlists.append(channelNum_x)
                     x = x + 1
                 # Channel_X_1
@@ -5928,7 +5932,7 @@ class presetChannels:
             criteria2 = ''
             self.presetChannels.append(presetChannel(name, type, rule1, rule2, operator1, operator2, criteria1, criteria2, limit, random, numepisodes, nummovies, unwatched, nospecials, resolution))
         if ADDON_SETTINGS.getSetting('bravo') == "true":
-            name = ADDON_SETTINGS.getSetting('bravo')
+            name = ADDON_SETTINGS.getSetting('bravo-name')
             type = 'episodes'
             rule1 = 'tvshow'
             rule2 = ''
@@ -9086,12 +9090,12 @@ class presetChannels:
         self.log('Getting Mixed TV Show Presets ')
         # Shared Settings
         type = 'episodes'
-        limit = ADDON_SETTINGS.getSetting('limit1')
-        random = False
+        limit = ADDON_SETTINGS.getSetting('limit5')
+        random = ADDON_SETTINGS.getSetting('random5')
         numepisodes = ''
         nummovies = ''
-        unwatched = ADDON_SETTINGS.getSetting('unwatched1')
-        nospecials = ADDON_SETTINGS.getSetting('nospecials1')
+        unwatched = ADDON_SETTINGS.getSetting('unwatched5')
+        nospecials = ADDON_SETTINGS.getSetting('nospecials5')
         resolution = ''        
 
         if ADDON_SETTINGS.getSetting('mixed-star-trek') == "true":

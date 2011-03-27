@@ -25,6 +25,7 @@ import time, threading
 import datetime
 import sys, re
 import random
+import glob
 
 from operator import itemgetter
 from xml.dom.minidom import parse, parseString
@@ -58,6 +59,8 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
         self.showingInfo = False
         self.showChannelBug = False
         self.nextM3uChannelNum = 0
+        self.getFileTries = 0
+        self.getfile = ""
         random.seed()
         
         for i in range(3):
@@ -77,6 +80,7 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
         self.infoTimer = threading.Timer(5.0, self.hideInfo)
         self.background = self.getControl(101)
         self.getControl(102).setVisible(False)
+        self.resetChannelActive = False
 
         self.createChannelsDir()
         self.createPresetsDir()
@@ -93,27 +97,29 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
             return
 
         # set auto reset timer if enabled        
-        self.log("onInit: self.channelResetSetting = " + str(self.channelResetSetting))
-        self.autoResetTimeValue = 0
-        if self.channelResetSetting > 0 and self.channelResetSetting < 4:
-            if ADDON_SETTINGS.getSetting('nextAutoResetDateTime') == "":
-                self.log("onInit: set next auto reset time")
-                self.setNextAutoResetTime()
-            elif ADDON_SETTINGS.getSetting('nextAutoResetDateTimeInterval') <> ADDON_SETTINGS.getSetting('ChannelResetSetting'):
-                self.log("onInit: reset interval changed. update next auto reset time.")
-                self.setNextAutoResetTime()
-            elif ADDON_SETTINGS.getSetting('nextAutoResetDateTimeResetTime') <> ADDON_SETTINGS.getSetting('ChannelResetSettingTime'):
-                self.log("onInit: reset time changed. update next auto reset time.")
-                self.setNextAutoResetTime()
-            else:
-                self.log("onInit: no change in auto reset time.")            
-            self.log("onInit: setting auto reset time")
-            self.setAutoResetTimer()
+        if self.autoChannelReset:
+            self.log("onInit: self.channelResetSetting = " + str(self.channelResetSetting))
+            self.autoResetTimeValue = 0
+            if self.channelResetSetting > 0 and self.channelResetSetting < 4:
+                if ADDON_SETTINGS.getSetting('nextAutoResetDateTime') == "":
+                    self.log("onInit: set next auto reset time")
+                    self.setNextAutoResetTime()
+                elif ADDON_SETTINGS.getSetting('nextAutoResetDateTimeInterval') <> ADDON_SETTINGS.getSetting('ChannelResetSetting'):
+                    self.log("onInit: reset interval changed. update next auto reset time.")
+                    self.setNextAutoResetTime()
+                elif ADDON_SETTINGS.getSetting('nextAutoResetDateTimeResetTime') <> ADDON_SETTINGS.getSetting('ChannelResetSettingTime'):
+                    self.log("onInit: reset time changed. update next auto reset time.")
+                    self.setNextAutoResetTime()
+                else:
+                    self.log("onInit: no change in auto reset time.")            
+                self.log("onInit: setting auto reset time")
+                self.setAutoResetTimer()
+            # start auto reset timer
+            self.startAutoResetTimer()
         
         # check for force reset
-        self.resetChannelActive = False
         self.log("onInit: self.forceReset = " + str(self.forceReset))
-        if self.forceReset == True:
+        if self.forceReset == "1" or self.forceReset == "2":
             self.log("onInit: resetChannels")
             self.resetChannels()
         
@@ -149,7 +155,6 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
         self.timeStarted = time()
         self.background.setVisible(False)
         self.startSleepTimer()
-        self.startAutoResetTimer()
         self.actionSemaphore.release()        
         self.log('onInit return')
 
@@ -162,8 +167,10 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
         # Sleep setting is in 30 minute incriments...so multiply by 30, and then 60 (min to sec)
         self.sleepTimeValue = int(ADDON_SETTINGS.getSetting('AutoOff')) * 1800
         self.log('Auto off is ' + str(self.sleepTimeValue))
-        self.forceReset = ADDON_SETTINGS.getSetting('ForceChannelReset') == "true"
+        self.forceReset = ADDON_SETTINGS.getSetting('ForceChannelReset')
         self.log('Force Reset is ' + str(self.forceReset))
+        self.autoChannelReset = ADDON_SETTINGS.getSetting("autoChannelReset") == "true"
+        self.log('Auto Channel Reset is ' + str(self.autoChannelReset))
         self.infoOnChange = ADDON_SETTINGS.getSetting("InfoOnChange") == "true"
         self.log('Show info label on channel change is ' + str(self.infoOnChange))
         self.channelResetSetting = int(ADDON_SETTINGS.getSetting("ChannelResetSetting"))
@@ -176,6 +183,58 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
             self.lastResetTime = int(ADDON_SETTINGS.getSetting("LastResetTime"))
         except:
             self.lastResetTime = 0
+
+        self.tvCommercials = ADDON_SETTINGS.getSetting("tvcommercials") == "true"
+        self.log('TV Commercials Enabled - ' + str(self.tvCommercials))
+        self.numTVCommercials = ADDON_SETTINGS.getSetting("numtvcommercials") 
+        self.log('Number of Commercials Between TV Files - ' + str(self.numTVCommercials))
+        self.maxTVCommercials = int(ADDON_SETTINGS.getSetting("maxtvcommercials")) + 1
+        self.log('Max Number of Commercials Between TV Files - ' + str(self.maxTVCommercials))
+        self.tvBumpers = ADDON_SETTINGS.getSetting("tvbumpers") == "true"
+        self.log('TV Bumpers Enabled - ' + str(self.tvBumpers))
+        self.numTVBumpers = ADDON_SETTINGS.getSetting("numtvbumpers")
+        self.log('Number of Bumpers Between TV Files - ' + str(self.numTVBumpers))
+        self.maxTVBumpers = int(ADDON_SETTINGS.getSetting("maxtvbumpers")) + 1
+        self.log('Max Number of Bumpers Between TV Files - ' + str(self.maxTVBumpers))
+        self.tvCommercialsFolder = ADDON_SETTINGS.getSetting("tvcommercialsfolder")
+        self.log('TV Commercials Folder - ' + str(self.tvCommercialsFolder))
+        self.tvBumpersFolder = ADDON_SETTINGS.getSetting("tvbumpersfolder")
+        self.log('TV Bumpers Folder - ' + str(self.tvBumpersFolder))
+
+        self.trailers = ADDON_SETTINGS.getSetting("trailers") == "true"
+        self.log('Movie Trailers Enabled - ' + str(self.trailers))
+        self.numTrailers = ADDON_SETTINGS.getSetting("numtrailers")
+        self.log('Number of Trailers Between Movie Files - ' + str(self.numTrailers))
+        self.maxTrailers = int(ADDON_SETTINGS.getSetting("maxtrailers")) + 1
+        self.log('Max Number of Trailers Between Movie Files - ' + str(self.maxTrailers))
+        self.movieBumpers = ADDON_SETTINGS.getSetting("moviebumpers") == "true"
+        self.log('Movie Bumpers Enabled - ' + str(self.movieBumpers))
+        self.numMovieBumpers = ADDON_SETTINGS.getSetting("nummoviebumpers")
+        self.log('Number of Bumpers Between Movie Files - ' + str(self.numMovieBumpers))
+        self.maxMovieBumpers = int(ADDON_SETTINGS.getSetting("maxmoviebumpers")) + 1
+        self.log('Max Number of Bumpers Between Movie Files - ' + str(self.maxMovieBumpers))
+        self.trailersFolder = ADDON_SETTINGS.getSetting("trailersfolder")
+        self.log('Trailers Folder - ' + str(self.trailersFolder))
+        self.movieBumpersFolder = ADDON_SETTINGS.getSetting("moviebumpersfolder")
+        self.log('Movie Bumpers Folder - ' + str(self.movieBumpersFolder))
+
+        self.mixCommercials = ADDON_SETTINGS.getSetting("mixcommercials") == "true"
+        self.log('Mix Channel Commercials Enabled - ' + str(self.mixCommercials))
+        self.numMixCommercials = ADDON_SETTINGS.getSetting("nummixcommercials")
+        self.log('Number of Commercials Between Mix Files - ' + str(self.numMixCommercials))
+        self.maxMixCommercials = int(ADDON_SETTINGS.getSetting("maxmixcommercials")) + 1
+        self.log('Max Number of Commercials Between Mix Files - ' + str(self.maxMixCommercials))
+        self.mixBumpers = ADDON_SETTINGS.getSetting("mixbumpers") == "true"
+        self.log('Mix Bumpers Enabled - ' + str(self.mixBumpers))
+        self.numMixBumpers = ADDON_SETTINGS.getSetting("nummixbumpers")
+        self.log('Number of Bumpers Between Mix Files - ' + str(self.numMixBumpers))
+        self.maxMixBumpers = int(ADDON_SETTINGS.getSetting("maxmixbumpers")) + 1
+        self.log('Max Number of Bumpers Between Mix Files - ' + str(self.maxMixBumpers))
+        self.mixCommercialsFolder = ADDON_SETTINGS.getSetting("mixcommercialsfolder")
+        self.log('Mix Commercials Folder - ' + str(self.mixCommercialsFolder))
+        self.mixBumpersFolder = ADDON_SETTINGS.getSetting("mixbumpersfolder")
+        self.log('Mix Bumpers Folder - ' + str(self.mixBumpersFolder))
+
         self.log("readConfig: Completed")
 
 
@@ -323,9 +382,10 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
         for playlistNum in range(self.numPresetChannels):
             if not self.updateDialog.iscanceled():
                 playlistNum = playlistNum + 1
+                channelName = str(self.getSmartPlaylistName(self.getSmartPlaylistFilename(playlistNum)))
                 self.updateProgressPlaylistNum = playlistNum # referenced when updating the dialog window in other functions
                 self.updateProgressPercentage = Decimal(self.updateProgressPercentage) + Decimal(progressIncrement)
-                self.updateDialog.update(self.updateProgressPercentage, "Building channel " + str(playlistNum),"","")
+                self.updateDialog.update(self.updateProgressPercentage, "Building Channel " + str(playlistNum) + ": " + str(channelName),"","")
                 self.log("loadPlaylists: Building Channel " + str(playlistNum))
                 self.channels.append(Channel())
                 self.buildChannel(playlistNum)
@@ -345,7 +405,6 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
         self.log("loadPlaylists: Build complete")
         xbmc.Player().stop()
         self.updateDialog.close()
-        ADDON_SETTINGS.setSetting('ForceChannelReset', 'false')
         self.log("loadPlaylists: Completed")
         return True
 
@@ -380,7 +439,6 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
                 self.updateDialog.close()
                 self.end()
                 return False
-        ADDON_SETTINGS.setSetting('ForceChannelReset', 'false')
         self.forceReset = False
 
         self.updateDialog.update(100, "Load complete","","")
@@ -428,23 +486,6 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
                     if self.channelResetSetting == 0 and self.channels[channel].totalTimePlayed > self.channels[channel].getTotalDuration():
                         resetChannel = True
                         self.log("loadChannel: resetChannel=True")
-                    #if self.channelResetSetting > 0 and self.channelResetSetting < 4:
-                    #    timedif = time() - self.lastResetTime
-                    #    if self.channelResetSetting == 1 and timedif > (60 * 60 * 24): # 1 day
-                    #        resetChannel = True
-                    #        self.log("loadChannel: resetChannel=True")
-                    #    if self.channelResetSetting == 2 and timedif > (60 * 60 * 24 * 7): # 7 days
-                    #        resetChannel = True
-                    #        self.log("loadChannel: resetChannel=True")
-                    #    if self.channelResetSetting == 3 and timedif > (60 * 60 * 24 * 30): # 30 days
-                    #        resetChannel = True
-                    #        self.log("loadChannel: resetChannel=True")
-                    #    if timedif < 0:
-                    #        resetChannel = True
-                    #        self.log("loadChannel: resetChannel=True")
-                    #    if resetChannel:
-                    #        ADDON_SETTINGS.setSetting('LastResetTime', str(int(time())))
-                    #        self.log("loadChannel: LastResetTime=" + str(int(time())))
             except:
                 pass
 
@@ -460,7 +501,8 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
         self.log("buildChannel: Started")
         self.log("buildChannel: playlistNum=" + str(playlistNum))
         self.log("buildChannel: self.nextM3uChannelNum=" + str(self.nextM3uChannelNum))
-        self.updateDialog.update(self.updateProgressPercentage, "Building channel " + str(self.updateProgressPlaylistNum),"Starting","")
+        channelName = str(self.getSmartPlaylistName(self.getSmartPlaylistFilename(playlistNum)))
+        self.updateDialog.update(self.updateProgressPercentage, "Building Channel " + str(self.updateProgressPlaylistNum) + ": " + str(channelName),"Starting","")
         # now let's create new channels
         if self.makeChannelList(playlistNum) == True:
             self.log("buildChannel: makeChannelList=True")
@@ -471,7 +513,7 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
             self.channelList.append(playlistNum)
             # add new channel to EPG
             self.log("buildChannel: Add channel to EPG")
-            self.updateDialog.update(self.updateProgressPercentage, "Building channel " + str(self.updateProgressPlaylistNum),"Adding Channel to EPG","")
+            self.updateDialog.update(self.updateProgressPercentage, "Building Channel " + str(self.updateProgressPlaylistNum) + ": " + str(channelName),"Adding Channel to EPG","")
             if self.channels[channelNum - 1].setPlaylist(CHANNELS_LOC + 'channel_' + str(channelNum) + '.m3u') == True:
                 self.channels[channelNum - 1].totalTimePlayed = 0
                 self.log("buildChannel: totalTimePlayed=0")          
@@ -482,11 +524,11 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
                 returnval = True
                 ADDON_SETTINGS.setSetting('Channel_' + str(channelNum) + '_time', '0')
             self.channels[channelNum - 1].name = self.getSmartPlaylistName(self.getSmartPlaylistFilename(playlistNum))
-            self.updateDialog.update(self.updateProgressPercentage, "Building channel " + str(self.updateProgressPlaylistNum),"Adding Channel to EPG",self.channels[channelNum - 1].name)
+            self.updateDialog.update(self.updateProgressPercentage, "Building Channel " + str(self.updateProgressPlaylistNum) + ": " + str(channelName),"Adding Channel to EPG",self.channels[channelNum - 1].name)
             self.log("buildChannel: name=" + str(self.channels[channelNum - 1].name))
             return returnval
             # load new channel
-            self.updateDialog.update(self.updateProgressPercentage, "Building channel " + str(self.updateProgressPlaylistNum),"Completed","")
+            self.updateDialog.update(self.updateProgressPercentage, "Building Channel " + str(self.updateProgressPlaylistNum) + ": " + str(channelName),"Completed","")
             self.log("buildChannel: Loading new channel")
         else:
             pass
@@ -646,7 +688,8 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
         self.log('makeChannelList ' + str(playlistNum))        
         fle = self.getSmartPlaylistFilename(playlistNum)
         filename = os.path.basename(fle)
-        self.updateDialog.update(self.updateProgressPercentage, "Building channel " + str(self.updateProgressPlaylistNum),"Getting SmartPlaylist",str(filename))
+        channelName = str(self.getSmartPlaylistName(self.getSmartPlaylistFilename(playlistNum)))
+        self.updateDialog.update(self.updateProgressPercentage, "Building Channel " + str(self.updateProgressPlaylistNum) + ": " + str(channelName),"Getting SmartPlaylist",str(filename))
         self.log("makeChannelList: fle=" + str(fle))
         if len(fle) == 0:
             self.log("makeChannelList: Unable to locate the playlist for channel " + str(playlistNum), xbmc.LOGERROR)
@@ -662,38 +705,335 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
             self.log("makeChannelList: Problem parsing playlist " + fle, xbmc.LOGERROR)
             xml.close()
             return False
-        xml.close()        
-        if self.getSmartPlaylistType(dom) == 'mixed':
-            self.updateDialog.update(self.updateProgressPercentage, "Building channel " + str(self.updateProgressPlaylistNum),"Found Mixed SmartPlaylist","")
+        xml.close()
+        pltype = self.getSmartPlaylistType(dom)
+
+        try:
+            limitNode = dom.getElementsByTagName('limit')
+        except:
+            # if no limit node in smartplaylist, force max limit
+            limit = 250
+            xml.close()
+   
+        if limitNode:
+            limit = limitNode[0].firstChild.nodeValue
+            # force a max limit of 250 for performance reason
+            if int(limit) > 250:
+                limit = 250
+        else:
+            # force a max limit of 250 for performance reason
+            limit = 250
+        
+        if pltype == 'mixed':
+            self.updateDialog.update(self.updateProgressPercentage, "Building Channel " + str(self.updateProgressPlaylistNum) + ": " + str(channelName),"Found Mixed SmartPlaylist","")
             self.fileLists = []
             self.level = 0
             self.fileLists = self.buildMixedFileLists(fle)            
             if not "movies" in self.fileLists and not "episodes" in self.fileLists:
                 self.log("makeChannelList: mix tvshow channel")
-                self.updateDialog.update(self.updateProgressPercentage, "Building channel " + str(self.updateProgressPlaylistNum),"Found Mixed SmartPlaylist","Building Mixed TV Show Channel")
-                fileList = self.buildMixedTVShowFileList(self.fileLists)
+                self.updateDialog.update(self.updateProgressPercentage, "Building Channel " + str(self.updateProgressPlaylistNum) + ": " + str(channelName),"Found Mixed SmartPlaylist","Building Mixed TV Show Channel")
+                fileList = self.buildMixedTVShowFileList(self.fileLists, limit)
             else:
-                self.updateDialog.update(self.updateProgressPercentage, "Building channel " + str(self.updateProgressPlaylistNum),"Found Mixed SmartPlaylist","Building Mixed Episode & Movie Channel")
-                fileList = self.buildMixedFileList(self.fileLists)
+                self.updateDialog.update(self.updateProgressPercentage, "Building Channel " + str(self.updateProgressPlaylistNum) + ": " + str(channelName),"Found Mixed SmartPlaylist","Building Mixed Episode & Movie Channel")
+                fileList = self.buildMixedFileList(self.fileLists, limit)
         else:
-            self.updateDialog.update(self.updateProgressPercentage, "Building channel " + str(self.updateProgressPlaylistNum),"Found SmartPlaylist","")
+            self.channelType = pltype
+            self.updateDialog.update(self.updateProgressPercentage, "Building Channel " + str(self.updateProgressPlaylistNum) + ": " + str(channelName),"Found SmartPlaylist","")
             fileList = self.buildFileList(fle)
 
         try:
             order = dom.getElementsByTagName('order')
             self.log("makeChannelList: order=" + str(order))
             if order[0].childNodes[0].nodeValue.lower() == 'random':
-                self.updateDialog.update(self.updateProgressPercentage, "Building channel " + str(self.updateProgressPlaylistNum),"Randomizing Channel Files","")
+                self.updateDialog.update(self.updateProgressPercentage, "Building Channel " + str(self.updateProgressPlaylistNum) + ": " + str(channelName),"Randomizing Channel Files","")
                 random.shuffle(fileList)
         except:
             pass
         
         # check if fileList contains files
         if len(fileList) == 0:
-            self.updateDialog.update(self.updateProgressPercentage, "Building channel " + str(self.updateProgressPlaylistNum),"No Files Found for Channel...Skipping","")
+            self.updateDialog.update(self.updateProgressPercentage, "Building Channel " + str(self.updateProgressPlaylistNum) + ": " + str(channelName),"No Files Found for Channel...Skipping","")
             self.log("makeChannelList: Playlist returned no files", xbmc.LOGERROR)
             return False
         else:
+            # here is where we need to insert commercials and/or bumpers into the filelist        
+            # need to determine what type of filelist it is so we can lookup whether we need to add commercials, bumpers, and/or trailers.
+            # episodes
+            # movies
+            # tvshow
+            # mixedtvshows
+            # mixedtvandmovies
+            newFileList = []
+            self.log("makeChannelList: self.channelType=" + str(self.channelType))
+            if self.channelType == "episodes" or self.channelType == "tvshow":
+                if os.path.exists(os.path.join(self.tvCommercialsFolder, channelName)):
+                    tvCommercialsFolder = os.path.join(self.tvCommercialsFolder, channelName)
+                else:
+                    tvCommercialsFolder = self.tvCommercialsFolder                
+                if self.numTVCommercials == "0":
+                    # need to determine how many commercials are available compared with number of files in tv channel to get a ratio
+                    # max for auto is 1 commercial between shows
+                    numTotalTVCommercials = len(glob.glob(os.path.join(tvCommercialsFolder, '*.*')))
+                    if numTotalTVCommercials > 0:
+                        tvCommercialInterval = len(fileList) / numTotalTVCommercials
+                        # if there are more commercials than files in the channel, set interval to 1
+                        if tvCommercialInterval < 1:
+                            tvCommercialInterval = 1
+                        # need to determine number of commercials to play during interval
+                        numTVCommercials = numTotalTVCommercials / len(fileList)
+                        if numTVCommercials < 1:
+                            numTVCommercials = 1
+                        if numTVCommercials > self.maxTVCommercials:
+                            numTVCommercials = self.maxTVCommercials
+                    else:
+                        tvCommercialInterval = 0
+                        numTVCommercials = 0
+                else:
+                    tvCommercialInterval = 1
+                    numTVCommercials = self.numTVCommercials
+                
+                if self.numTVBumpers == "0":
+                    # need to determine how many commercials are available compared with number of files in tv channel to get a ratio
+                    # max for auto is 1 commercial between shows
+                    numTotalBumpers = len(glob.glob(os.path.join(self.tvBumpersFolder, channelName, '*.*')))
+                    if numTotalBumpers > 0:
+                        tvBumperInterval = len(fileList) / numTotalBumpers
+                        # if there are more bumpers than files in the channel, set interval to 1
+                        if tvBumperInterval < 1:
+                            tvBumperInterval = 1
+                        # need to determine number of bumpers to play during interval
+                        numTVBumpers = numTotalBumpers / len(fileList)
+                        if numTVBumpers < 1:
+                            numTVBumpers = 1
+                        if numTVBumpers > self.maxTVBumpers:
+                            numTVBumpers = self.maxTVBumpers
+                    else:
+                        tvBumperInterval = 0
+                        numTVBumpers = 0
+                else:
+                    tvBumperInterval = 1                
+                    numTVBumpers = self.numTVBumpers
+
+                self.log("makeChannelList: tvCommercialsFolder=" + str(tvCommercialsFolder))
+                self.log("makeChannelList: numTotalTVCommercials=" + str(numTotalTVCommercials))
+                self.log("makeChannelList: tvCommercialInterval=" + str(tvCommercialInterval))
+                self.log("makeChannelList: numTVCommercials=" + str(numTVCommercials))
+                
+                self.log("makeChannelList: self.tvBumpersFolder=" + str(self.tvBumpersFolder))
+                self.log("makeChannelList: numTotalBumpers=" + str(numTotalBumpers))
+                self.log("makeChannelList: tvBumperInterval=" + str(tvBumperInterval))
+                self.log("makeChannelList: numTVBumpers=" + str(numTVBumpers))
+
+                if self.tvCommercials == True or self.tvBumpers == True:
+                    for i in range(len(fileList)):
+                        self.log('makeChannelList: Inserting file')
+                        newFileList.append(fileList[i])
+                        # mix in commercials and/or bumpers                        
+                        if self.tvBumpers == True and not tvBumperInterval == 0:
+                            if (i+1) % tvBumperInterval == 0:
+                                self.log("makeChannelList: Add Bumper")
+                                for n in range(int(numTVBumpers)):
+                                    bumperFile = self.getFile(os.path.join(self.tvBumpersFolder, channelName))
+                                    self.log("makeChannelList: bumperFile=" + str(bumperFile))
+                                    if len(bumperFile) > 0:
+                                        self.log('makeChannelList: Inserting Bumper')
+                                        newFileList.append(bumperFile)
+                                    else:
+                                        self.log('makeChannelList: Unable to get bumper')
+                                    n = n + 1
+                        if self.tvCommercials == True and not tvCommercialInterval == 0:
+                            self.log("makeChannelList: Begin Inserting Commercials")
+                            if (i+1) % tvCommercialInterval == 0:
+                                self.log("makeChannelList: Add Commercial")
+                                for n in range(int(numTVCommercials)):
+                                    commercialFile = self.getFile(tvCommercialsFolder)
+                                    self.log("makeChannelList: commercialFile=" + str(commercialFile))
+                                    if len(commercialFile) > 0:
+                                        self.log('makeChannelList: Inserting Commercial')
+                                        newFileList.append(commercialFile)
+                                    else:
+                                        self.log('makeChannelList: Unable to get commercial')                                        
+                                    n = n + 1
+                        i = i + 1
+                fileList = newFileList
+
+            elif self.channelType == "movies":
+
+                if os.path.exists(os.path.join(self.trailersFolder, channelName)):
+                    trailersFolder = os.path.join(self.trailersFolder, channelName)
+                else:
+                    trailersFolder = self.trailersFolder                
+
+                if self.numTrailers == "0":
+                    # need to determine how many commercials are available compared with number of files in tv channel to get a ratio
+                    # max for auto is 1 commercial between shows
+                    numTotalTrailers = len(glob.glob(os.path.join(trailersFolder, '*.*')))
+                    if numTotalTrailers > 0:
+                        trailerInterval = len(fileList) / numTotalTrailers
+                        # if there are more commercials than files in the channel, set interval to 1
+                        if trailerInterval < 1:
+                            trailerInterval = 1
+                        # need to determine number of bumpers to play during interval
+                        numTrailers = numTotalTrailers / len(fileList)
+                        if numTrailers < 1:
+                            numTrailers = 1
+                        if numTrailers > self.maxTrailers:
+                            numTrailers = self.maxTrailers
+                    else:
+                        trailerInterval = 0
+                        numTrailers = 0
+                else:
+                    trailerInterval = 1
+                    numTrailers = self.numTrailers
+
+                self.log("makeChannelList: trailersFolder=" + str(trailersFolder))
+                self.log("makeChannelList: numTotalTrailers=" + str(numTotalTrailers))
+                self.log("makeChannelList: trailerInterval=" + str(trailerInterval))
+                self.log("makeChannelList: numTrailers=" + str(numTrailers))
+                
+                if self.numMovieBumpers == "0":
+                    # need to determine how many commercials are available compared with number of files in tv channel to get a ratio
+                    # max for auto is 1 commercial between shows
+                    numTotalBumpers = len(glob.glob(os.path.join(self.movieBumpersFolder, channelName, '*.*')))
+                    if numTotalBumpers > 0:
+                        movieBumperInterval = len(fileList) / numTotalBumpers
+                        # if there are more bumpers than files in the channel, set interval to 1
+                        if movieBumperInterval < 1:
+                            movieBumperInterval = 1
+                        # need to determine number of bumpers to play during interval
+                        numMovieBumpers = numTotalBumpers / len(fileList)
+                        if numMovieBumpers < 1:
+                            numMovieBumpers = 1
+                        if numMovieBumpers > self.maxMovieBumpers:
+                            numMovieBumpers = self.maxMovieBumpers
+                    else:
+                        movieBumperInterval = 0
+                        numMovieBumpers = 0
+                else:
+                    movieBumperInterval = 1
+                    numMovieBumpers = self.numMovieBumpers
+
+                self.log("makeChannelList: self.movieBumpersFolder=" + str(self.movieBumpersFolder))
+                self.log("makeChannelList: numTotalBumpers=" + str(numTotalBumpers))
+                self.log("makeChannelList: movieBumperInterval=" + str(movieBumperInterval))
+                self.log("makeChannelList: numMovieBumpers=" + str(numMovieBumpers))
+
+                if self.trailers == True or self.movieBumpers == True:
+                    for i in range(len(fileList)):
+                        self.log('makeChannelList: Inserting file')
+                        newFileList.append(fileList[i])
+                        # mix in commercials and/or bumpers
+                        if self.movieBumpers == True and not movieBumperInterval == 0:
+                            if (i+1) % movieBumperInterval == 0:
+                                self.log("makeChannelList: Add Bumper")
+                                for n in range(int(numMovieBumpers)):
+                                    bumperFile = self.getFile(os.path.join(self.movieBumpersFolder, channelName))
+                                    self.log("makeChannelList: bumperFile=" + str(bumperFile))
+                                    if len(bumperFile) > 0:
+                                        self.log('makeChannelList: Inserting Bumper')
+                                        newFileList.append(bumperFile)
+                                    else:
+                                        self.log('makeChannelList: Unable to get bumper')
+                                    n = n + 1
+                        if self.trailers == True and not trailerInterval == 0:
+                            if (i+1) % trailerInterval == 0:
+                                self.log("makeChannelList: Add Trailer")
+                                for n in range(int(numTrailers)):
+                                    trailerFile = self.getFile(trailersFolder)
+                                    self.log("makeChannelList: trailerFile=" + str(trailerFile))
+                                    if len(trailerFile) > 0:
+                                        self.log('makeChannelList: Inserting Trailer')
+                                        newFileList.append(trailerFile)
+                                    else:
+                                        self.log('makeChannelList: Unable to get trailer')                                        
+                                    n = n + 1
+                        i = i + 1
+                fileList = newFileList
+
+            elif self.channelType == "mixedtvshows" or self.channelType == "mixedtvandmovies": # network channels or tv series (e.g. stargate, startrek)
+                # determine which folder to get commercials from
+                if os.path.exists(os.path.join(self.mixCommercialsFolder, channelName)):
+                    mixCommercialsFolder = os.path.join(self.mixCommercialsFolder, channelName)
+                else:
+                    mixCommercialsFolder = self.mixCommercialsFolder
+                if self.numMixCommercials == "0":
+                    # need to determine how many commercials are available compared with number of files in tv channel to get a ratio
+                    # max for auto is 1 commercial between shows
+                    numTotalCommercials = len(glob.glob(os.path.join(mixCommercialsFolder, '*.*')))
+                    if numTotalCommercials > 0:
+                        mixCommercialInterval = len(fileList) / numTotalCommercials
+                        # if there are more commercials than files in the channel, set interval to 1
+                        if mixCommercialInterval < 1:
+                            mixCommercialInterval = 1
+                        # need to determine number of commercials to play during interval
+                        numMixCommercials = numTotalCommercials / len(fileList)
+                        if numMixCommercials < 1:
+                            numMixCommercials = 1
+                        if numMixCommercials > self.maxMixCommercials:
+                            numMixCommercials = self.maxMixCommercials
+                    else:
+                        mixCommercialInterval = 0
+                        numMixCommercials = 0
+                else:
+                    mixCommercialInterval = 1
+                    numMixCommercials = self.numMixCommercials
+
+                if self.numMixBumpers == "0":
+                    # need to determine how many commercials are available compared with number of files in tv channel to get a ratio
+                    # max for auto is 1 commercial between shows
+                    numTotalBumpers = len(glob.glob(os.path.join(self.mixBumpersFolder, channelName, '*.*')))
+                    if numTotalBumpers > 0:
+                        mixBumperInterval = len(fileList) / numTotalBumpers
+                        # if there are more bumpers than files in the channel, set interval to 1
+                        if mixBumperInterval < 1:
+                            mixBumperInterval = 1
+                        # need to determine number of bumpers to play during interval
+                        numMixBumpers = numTotalBumpers / len(fileList)
+                        if numMixBumpers < 1:
+                            numMixBumpers = 1
+                        if numMixBumpers > self.maxMixBumpers:
+                            numMixBumpers = self.maxMixBumpers
+                    else:
+                        mixBumperInterval = 0
+                        numMixBumpers = 0
+                else:
+                    mixBumperInterval = 1
+                    numMixBumpers = 1
+
+                # check if mixcommercials is enabled
+                if self.mixCommercials == True or self.mixBumpers == True:
+                    for i in range(len(fileList)):
+                        self.log('makeChannelList: Inserting file')
+                        newFileList.append(fileList[i])
+                        # mix in commercials and/or bumpers
+                        if self.mixBumpers == True and not mixBumperInterval == 0:
+                            if (i+1) % mixBumperInterval == 0:
+                                self.log("makeChannelList: Add Bumper")
+                                for n in range(int(numMixBumpers)):
+                                    bumperFile = self.getFile(os.path.join(self.mixBumpersFolder, channelName))
+                                    self.log("makeChannelList: bumperFile=" + str(bumperFile))
+                                    if len(bumperFile) > 0:
+                                        self.log('makeChannelList: Inserting bumper')
+                                        newFileList.append(bumperFile)
+                                    else:
+                                        self.log('makeChannelList: Unable to get bumper')
+                                    n = n + 1
+                        if self.mixCommercials == True and not mixCommercialInterval == 0:
+                            self.log("makeChannelList: Begin Inserting Commercials")
+                            if (i+1) % mixCommercialInterval == 0:
+                                self.log("makeChannelList: Add Commercial")
+                                for n in range(int(numMixCommercials)):
+                                    commercialFile = self.getFile(mixCommercialsFolder)
+                                    self.log("makeChannelList: commercialFile=" + str(commercialFile))
+                                    if len(commercialFile) > 0:
+                                        self.log('makeChannelList: Inserting Commercial ' + str(commercialFile))
+                                        newFileList.append(commercialFile)
+                                    else:
+                                        self.log('makeChannelList: Unable to get commercial')                                        
+                                    n = n + 1
+                        i = i + 1
+                fileList = newFileList
+                        
             # valid channel
             if m3uNum == None:
                 self.nextM3uChannelNum = self.nextM3uChannelNum + 1
@@ -707,6 +1047,79 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
         self.log("makeChannelList: Completed")
 
 
+    def getFile(self, folder):
+        self.log("getFile: Started")
+        tmpstr = ""
+        self.getFileTries = self.getFileTries + 1
+        self.log("getFile: self.getFileTries=" + str(self.getFileTries))
+        if os.path.exists(folder):
+            if self.getFileTries < 100:
+                # get directory contents
+                try:
+                    self.log("getFile: folder=" + str(folder))
+                    filename = random.choice(os.listdir(folder))
+                    self.log("getFile: filename=" + str(filename))
+                    if len(filename) > 0:
+                        # get duration of file
+                        dur = self.videoParser.getVideoLength(os.path.join(folder, filename))
+                        self.log("getFile: dur=" + str(dur))
+                        if dur == 0:
+                            # try again
+                            self.getFile(folder)
+                        else:
+                            # let's parse out some file information
+                            filename_base = []
+                            filename_parts = []
+                            filename_parts2 = []
+                            filename_base = filename.split(".")
+                            filename_parts = filename_base[0].split("_")
+                            filename_parts2 = filename_base[0].split("-")
+                            if len(filename_parts) > len(filename_parts2):
+                                # use filename_parts
+                                title = filename_parts[0]
+                                if len(filename_parts) > 1:
+                                    showtitle = filename_parts[1]
+                                else:
+                                    showtitle = ""
+                                if len(filename_parts) > 2:
+                                    description = filename_parts[2]
+                                else:
+                                    description = ""
+                            else:
+                                # use filename_parts2
+                                title = filename_parts2[0]
+                                if len(filename_parts2) > 1:
+                                    showtitle = filename_parts2[1]
+                                else:
+                                    showtitle = ""
+                                if len(filename_parts2) > 2:
+                                    description = filename_parts2[2]
+                                else:
+                                    description = ""
+                            self.log("getFile: title=" + str(title))                     
+                            self.log("getFile: showtitle=" + str(showtitle))                     
+                            self.log("getFile: description=" + str(description))                     
+                            tmpstr = str(dur) + ',' + str(title) + '//' + str(showtitle) + '//' + str(description)
+                            tmpstr = tmpstr + '\n' + os.path.join(folder, filename)
+                            self.getfile = tmpstr
+                            self.getFileTries = 0
+                    else:
+                        # try again
+                        self.getFile(folder)
+                except:
+                    # try again
+                    self.getFile(folder)
+            else:
+                self.log("getFile: File: Failed to find a valid file after 100 attempts")
+        else:
+            self.log("getFile: Folder does not exist " + str(folder))
+
+        self.log("getFile: Completed")
+        self.log("getFile: File=" + str(tmpstr))
+        self.getFileTries = 0
+        return str(self.getfile)
+
+
     def writeM3u(self, channelNum, fileList):
         self.log("writeM3u: Started")
         try:
@@ -714,7 +1127,8 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
         except:
             self.Error('writeM3u: Unable to open the cache file ' + CHANNELS_LOC + 'channel_' + str(channelNum) + '.m3u', xbmc.LOGERROR)
             return False        
-        self.updateDialog.update(self.updateProgressPercentage, "Building channel " + str(self.updateProgressPlaylistNum),"Writing Channel File to Cache","")            
+        channelName = str(self.getSmartPlaylistName(self.getSmartPlaylistFilename(self.updateProgressPlaylistNum)))
+        self.updateDialog.update(self.updateProgressPercentage, "Creating Channel " + str(self.updateProgressPlaylistNum) + ": " + str(channelName),"Writing Channel File to Cache","")            
         self.log("writeM3u: created m3u file " + CHANNELS_LOC + "channel_" + str(channelNum) + ".m3u successfully") 
         channelplaylist.write("#EXTM3U\n")
         fileList = fileList[:250]
@@ -803,20 +1217,22 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
 
     def buildFileList(self, dir_name, media_type="video", recursive="TRUE"):
         self.log("buildFileList: Started")
-        self.updateDialog.update(self.updateProgressPercentage, "Building channel " + str(self.updateProgressPlaylistNum),"Querying XBMC Database...please wait","")
+        channelName = self.getSmartPlaylistName(self.getSmartPlaylistFilename(self.updateProgressPlaylistNum))
+        playlistName = self.getSmartPlaylistName(dir_name)
+        self.updateDialog.update(self.updateProgressPercentage, "Building File List " + str(self.updateProgressPlaylistNum) + ": " + str(channelName),"Querying XBMC Database...please wait",str(playlistName))
         fileList = []
         json_query = '{"jsonrpc": "2.0", "method": "Files.GetDirectory", "params": {"directory": "%s", "media": "%s", "recursive": "%s", "fields":["duration","tagline","showtitle","album","artist","plot"]}, "id": 1}' % ( self.escapeDirJSON( dir_name ), media_type, recursive )
         json_folder_detail = xbmc.executeJSONRPC(json_query)
         self.log(json_folder_detail)
         file_detail = re.compile( "{(.*?)}", re.DOTALL ).findall(json_folder_detail)
-        self.updateDialog.update(self.updateProgressPercentage, "Building channel " + str(self.updateProgressPlaylistNum),"Processing Results","")
+        self.updateDialog.update(self.updateProgressPercentage, "Building File List " + str(self.updateProgressPlaylistNum) + ": " + str(channelName),"Processing Results",str(playlistName))
         numFiles = len(file_detail)
         progressIncrement = 100/numFiles
         progressPercentage = 0
         fileNum = 1
         for f in file_detail:
             progressPercentage = progressPercentage + progressIncrement
-            self.updateDialog.update(self.updateProgressPercentage, "Building channel " + str(self.updateProgressPlaylistNum),"Analyzing File " + str(fileNum),"")
+            self.updateDialog.update(self.updateProgressPercentage, "Building File List " + str(self.updateProgressPlaylistNum) + ": " + str(channelName),"Analyzing File " + str(fileNum),"")
             match = re.search('"file" *: *"(.*?)",', f)
             if match:
                 if(match.group(1).endswith("/") or match.group(1).endswith("\\")):
@@ -831,7 +1247,7 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
                         dur = 0
 
                     if dur == 0:
-                        self.updateDialog.update(self.updateProgressPercentage, "Building channel " + str(self.updateProgressPlaylistNum),"Analyzing File " + str(fileNum),"Getting Video Duration")
+                        self.updateDialog.update(self.updateProgressPercentage, "Building File List " + str(self.updateProgressPlaylistNum) + ": " + str(channelName),"Analyzing File " + str(fileNum),"Getting Video Duration")
                         self.log("buildFileList: Getting Video Durations")
                         dur = self.videoParser.getVideoLength(match.group(1).replace("\\\\", "\\"))
                         self.log("buildFileList: dur=" + str(dur))
@@ -865,7 +1281,7 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
                             tmpstr = tmpstr.replace("\\n", " ").replace("\\r", " ").replace("\\\"", "\"")
                             tmpstr = tmpstr + '\n' + match.group(1).replace("\\\\", "\\")
                             fileList.append(tmpstr)
-                            self.updateDialog.update(self.updateProgressPercentage, "Building channel " + str(self.updateProgressPlaylistNum),"Adding File " + str(fileNum),"")
+                            self.updateDialog.update(self.updateProgressPercentage, "Building File List " + str(self.updateProgressPlaylistNum) + ": " + str(channelName),"Adding File " + str(fileNum),"")
                     except:
                         pass
             else:
@@ -875,15 +1291,17 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
         return fileList
 
 
-    def buildMixedTVShowFileList(self, fileLists):
+    def buildMixedTVShowFileList(self, fileLists, limit):
         self.log("buildMixedTVShowFileList: Started")
+        self.channelType = "mixedtvshows"
+        channelName = str(self.getSmartPlaylistName(self.getSmartPlaylistFilename(self.updateProgressPlaylistNum)))
         tvshowList = []        
         fileList = []
         maxFileListItems = 0
         numTotalItems = 0
         # neeed to grab one episode from each list until we reach channel limit
         self.log("buildMixedTVShowFileList: fileLists Length=" + str(len(fileLists)))
-        self.updateDialog.update(self.updateProgressPercentage, "Building channel " + str(self.updateProgressPlaylistNum),"Found Mixed SmartPlaylist","Processing " + str(len(fileLists)) + " Playlists")
+        self.updateDialog.update(self.updateProgressPercentage, "Building File List " + str(self.updateProgressPlaylistNum) + ": " + str(channelName),"Found Mixed SmartPlaylist","Processing " + str(len(fileLists)) + " Playlists")
         # get fileList sizes
         fl = 0 
         for fl in range(len(fileLists)):
@@ -908,16 +1326,22 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
         f = 0
         for f in range(len(fileList)):
             self.log("buildMixedTVShowFileList: fileList item: " + str(fileList[f]))
-            self.updateDialog.update(self.updateProgressPercentage, "Building channel " + str(self.updateProgressPlaylistNum),"Found Mixed SmartPlaylist","Adding " + str(fileList[f]) + " to channel file list")
+            self.updateDialog.update(self.updateProgressPercentage, "Building File List " + str(self.updateProgressPlaylistNum) + ": " + str(channelName),"Found Mixed SmartPlaylist","Adding " + str(fileList[f]) + " to channel file list")
             f = f + 1
+
+        # limit filelist
+        self.log("buildMixedTVShowFileList: limit=" + str(limit))
+        fileList = fileList[0:int(limit)]
 
         self.log("buildMixedTVShowFileList: fileList contains " + str(len(fileList)) + " items")
         self.log("buildMixedTVShowFileList: Completed")
         return fileList
 
 
-    def buildMixedFileList(self, fileLists):
+    def buildMixedFileList(self, fileLists, limit):
         self.log("buildMixedFileList: Started")
+        self.channelType = "mixedtvandmovies"
+        channelName = str(self.getSmartPlaylistName(self.getSmartPlaylistFilename(self.updateProgressPlaylistNum)))
         i = 0
         numMovieItems = 0
         numEpisodeItems = 0
@@ -936,7 +1360,7 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
 
         # create seperate lists for each type
         for i in range(len(fileLists)):
-            self.updateDialog.update(self.updateProgressPercentage, "Building channel " + str(self.updateProgressPlaylistNum),"Found Mixed SmartPlaylist","Sorting files by type")
+            self.updateDialog.update(self.updateProgressPercentage, "Building File List " + str(self.updateProgressPlaylistNum) + ": " + str(channelName),"Found Mixed SmartPlaylist","Sorting files by type")
             if fileLists[i].type == "movies":
                 self.log("buildMixedFileList: movie list found: " + str(i))
                 if int(movieIndex) == 999:
@@ -1010,7 +1434,7 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
         episodeSeq = episodeList[0:numEpisodes]
         tvshowSeq = tvshowList[0:numTVShows]
 
-        self.updateDialog.update(self.updateProgressPercentage, "Building channel " + str(self.updateProgressPlaylistNum),"Found Mixed SmartPlaylist","Creating channel file list")
+        self.updateDialog.update(self.updateProgressPercentage, "Building File List " + str(self.updateProgressPlaylistNum) + ": " + str(channelName),"Found Mixed SmartPlaylist","Creating channel file list")
         # build the final fileList for the channel
         if int(movieIndex) < int(episodeIndex) and int(movieIndex) < tvshowIndex:
             # add movie files first
@@ -1074,13 +1498,18 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
 
         self.log("buildMixedFileList: fileList contains " + str(len(fileList)) + " items")
         self.log("buildMixedFileList: Completed")
+        
+        # limit filelist
+        self.log("buildMixedFileList: limit=" + str(limit))
+        fileList = fileList[0:int(limit)]
+
         return fileList
 
 
     def buildMixedFileLists(self, src):
         self.log("buildMixedFileLists: Started")
         self.log("buildMixedFileLists: src=" + str(src))
-        self.updateDialog.update(self.updateProgressPercentage, "Building channel " + str(self.updateProgressPlaylistNum),"Mixed Channel","")
+        self.updateDialog.update(self.updateProgressPercentage, "Building File List " + str(self.updateProgressPlaylistNum),"Mixed Channel","")
         dom1 = self.presetChannels.getPlaylist(src)
         pltype = self.getSmartPlaylistType(dom1)
 
@@ -1288,6 +1717,9 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
             self.buildPlaylists()
             # load in new playlists to create new m3u files
             self.loadPlaylists()
+            # reset the force setting to Never if it was set to Once
+            if self.forceReset == "1":
+                ADDON_SETTINGS.setSetting("ForceChannelReset", "0")
             # reset finished
             self.resetChannelActive == False
             self.log("resetChannels: Completed")
