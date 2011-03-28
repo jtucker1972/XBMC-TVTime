@@ -1,6 +1,11 @@
 Changelog
 
 
+1.0.12
+    Added Commercial, Bumpers and Trailers feature
+    Updated Loading Dialog to show more detail during mixed channel build
+    Fixed bug with Bravo preset channel name
+
 1.0.11
     Added Night Skin
 
