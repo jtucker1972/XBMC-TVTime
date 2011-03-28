@@ -402,9 +402,11 @@ class EPGWindow(xbmcgui.WindowXMLDialog):
 
         # change controls to display the proper junks
         if self.focusIndex == len(self.channelButtons[self.focusRow]) - 1:
+            self.log("goRight shownTime=" + str(self.shownTime + 1800))
             self.setChannelButtons(self.shownTime + 1800, self.centerChannel)
-
-        self.focusTime = self.focusEndTime + 30
+        self.log("goRight focusEndTime=" + str(self.focusEndTime + 30))
+        # increased from 30 to 60 due to short duration videos causing it to not want to move right
+        self.focusTime = self.focusEndTime + 60
         self.setProperButton(self.focusRow, True)
         self.log('goRight return')
 
