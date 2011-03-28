@@ -514,6 +514,7 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
             # add new channel to EPG
             self.log("buildChannel: Add channel to EPG")
             self.updateDialog.update(self.updateProgressPercentage, "Building Channel " + str(self.updateProgressPlaylistNum) + ": " + str(channelName),"Adding Channel to EPG","")
+            self.log("buildChannel: self.channels[" + str(channelNum - 1) + "].setPlaylist" + str(CHANNELS_LOC) + "channel_" + str(channelNum) + ".m3u")
             if self.channels[channelNum - 1].setPlaylist(CHANNELS_LOC + 'channel_' + str(channelNum) + '.m3u') == True:
                 self.channels[channelNum - 1].totalTimePlayed = 0
                 self.log("buildChannel: totalTimePlayed=0")          
@@ -523,6 +524,8 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
                 self.log("buildChannel: fileName=" + CHANNELS_LOC + "channel_" + str(channelNum) + ".m3u")
                 returnval = True
                 ADDON_SETTINGS.setSetting('Channel_' + str(channelNum) + '_time', '0')
+            else:
+                returnval = False
             self.channels[channelNum - 1].name = self.getSmartPlaylistName(self.getSmartPlaylistFilename(playlistNum))
             self.updateDialog.update(self.updateProgressPercentage, "Building Channel " + str(self.updateProgressPlaylistNum) + ": " + str(channelName),"Adding Channel to EPG",self.channels[channelNum - 1].name)
             self.log("buildChannel: name=" + str(self.channels[channelNum - 1].name))
@@ -829,7 +832,7 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
                         self.log('makeChannelList: Inserting file')
                         newFileList.append(fileList[i])
                         # mix in commercials and/or bumpers                        
-                        if self.tvBumpers == True and not tvBumperInterval == 0:
+                        if self.tvBumpers == True and not tvBumperInterval == 0 and not self.tvBumpersFolder == "":
                             if (i+1) % tvBumperInterval == 0:
                                 self.log("makeChannelList: Add Bumper")
                                 for n in range(int(numTVBumpers)):
@@ -841,7 +844,7 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
                                     else:
                                         self.log('makeChannelList: Unable to get bumper')
                                     n = n + 1
-                        if self.tvCommercials == True and not tvCommercialInterval == 0:
+                        if self.tvCommercials == True and not tvCommercialInterval == 0 and not tvCommercialsFolder == "":
                             self.log("makeChannelList: Begin Inserting Commercials")
                             if (i+1) % tvCommercialInterval == 0:
                                 self.log("makeChannelList: Add Commercial")
@@ -923,7 +926,7 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
                         self.log('makeChannelList: Inserting file')
                         newFileList.append(fileList[i])
                         # mix in commercials and/or bumpers
-                        if self.movieBumpers == True and not movieBumperInterval == 0:
+                        if self.movieBumpers == True and not movieBumperInterval == 0 and not self.movieBumpersFolder == "":
                             if (i+1) % movieBumperInterval == 0:
                                 self.log("makeChannelList: Add Bumper")
                                 for n in range(int(numMovieBumpers)):
@@ -935,7 +938,7 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
                                     else:
                                         self.log('makeChannelList: Unable to get bumper')
                                     n = n + 1
-                        if self.trailers == True and not trailerInterval == 0:
+                        if self.trailers == True and not trailerInterval == 0 and not trailersFolder == "":
                             if (i+1) % trailerInterval == 0:
                                 self.log("makeChannelList: Add Trailer")
                                 for n in range(int(numTrailers)):
@@ -1006,7 +1009,7 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
                         self.log('makeChannelList: Inserting file')
                         newFileList.append(fileList[i])
                         # mix in commercials and/or bumpers
-                        if self.mixBumpers == True and not mixBumperInterval == 0:
+                        if self.mixBumpers == True and not mixBumperInterval == 0 and not self.mixBumpersFolder == "":
                             if (i+1) % mixBumperInterval == 0:
                                 self.log("makeChannelList: Add Bumper")
                                 for n in range(int(numMixBumpers)):
@@ -1018,7 +1021,7 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
                                     else:
                                         self.log('makeChannelList: Unable to get bumper')
                                     n = n + 1
-                        if self.mixCommercials == True and not mixCommercialInterval == 0:
+                        if self.mixCommercials == True and not mixCommercialInterval == 0 and not mixCommercialsFolder == "":
                             self.log("makeChannelList: Begin Inserting Commercials")
                             if (i+1) % mixCommercialInterval == 0:
                                 self.log("makeChannelList: Add Commercial")
