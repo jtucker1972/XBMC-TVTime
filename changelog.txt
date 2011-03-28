@@ -1,6 +1,9 @@
 Changelog
 
 
+1.0.13
+    Adjusted settings strings to look better in Confluence (no overruns) 
+
 1.0.12
     Added Commercial, Bumpers and Trailers feature
     Updated Loading Dialog to show more detail during mixed channel build

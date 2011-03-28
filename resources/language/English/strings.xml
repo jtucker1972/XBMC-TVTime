@@ -15,18 +15,18 @@
     <string id="30013">    Select Trailers Folder</string>
     <string id="30014">Enable Auto Channel Reset</string>
 
-    <string id="30042">    Maximum Number of Commercials Between Episodes</string>
-    <string id="30043">    Maximum Number of Bumpers Between Episodes</string>
-    <string id="30044">    Maximum Number of Bumpers Between Shows</string>
-    <string id="30045">    Maximum Number of Commercials Between Shows</string>
-    <string id="30046">    Maximum Number of Bumpers Between Movies</string>
-    <string id="30047">    Maximum Number of Trailers Between Movies</string>
-    <string id="30048">    Number of Bumpers to Show Between Shows</string>
+    <string id="30042">    Maximum Number of Commercials</string>
+    <string id="30043">    Maximum Number of Bumpers</string>
+    <string id="30044">    Maximum Number of Bumpers</string>
+    <string id="30045">    Maximum Number of Commercials</string>
+    <string id="30046">    Maximum Number of Bumpers</string>
+    <string id="30047">    Maximum Number of Trailers</string>
+    <string id="30048">    # of Bumpers to Show Between Shows</string>
     <string id="30049">Trailer & Bumper Settings</string>
     <string id="30050">Commercial & Bumper Settings</string>
     <string id="30051">Mix TV Show Settings</string>
-    <string id="30052">    Number of Commercials to Show Between Shows</string>
-    <string id="30053">    Number of Trailers to Show Between Shows</string>
+    <string id="30052">    # of Commercials to Show Between Shows</string>
+    <string id="30053">    # of Trailers to Show Between Shows</string>
     <string id="30054">Enable Trailers</string>
     <string id="30055">Enable Commercials</string>
     <string id="30056">Enable Bumpers</string>
