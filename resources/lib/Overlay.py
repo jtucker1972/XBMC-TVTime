@@ -17,7 +17,6 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with PseudoTV.  If not, see <http://www.gnu.org/licenses/>.
-#
 
 import xbmc, xbmcgui, xbmcaddon
 import subprocess, os
@@ -25,20 +24,24 @@ import time, threading
 import datetime
 import sys, re
 import random
-import glob
 
-from operator import itemgetter
 from xml.dom.minidom import parse, parseString
-from time import time, localtime, strftime, strptime, mktime, sleep
-from datetime import datetime, date, timedelta
+
 from Playlist import Playlist
 from Globals import *
 from Channel import Channel
 from EPGWindow import EPGWindow
+from 
+
+from operator import itemgetter
+from time import time, localtime, strftime, strptime, mktime, sleep
+from datetime import datetime, date, timedelta
 from VideoParser import VideoParser
 from decimal import *
 from PresetChannels import *
-from LiveChannels import *
+#from LiveChannels import *
+
+import glob
 
 # overlay window to catch events and change channels
 class TVOverlay(xbmcgui.WindowXMLDialog):
