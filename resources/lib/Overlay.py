@@ -31,7 +31,6 @@ from Playlist import Playlist
 from Globals import *
 from Channel import Channel
 from EPGWindow import EPGWindow
-from 
 
 from operator import itemgetter
 from time import time, localtime, strftime, strptime, mktime, sleep
@@ -39,7 +38,6 @@ from datetime import datetime, date, timedelta
 from VideoParser import VideoParser
 from decimal import *
 from PresetChannels import *
-#from LiveChannels import *
 
 import glob
 
