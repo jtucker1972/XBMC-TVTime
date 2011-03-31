@@ -38,7 +38,7 @@ from EPGWindow import EPGWindow
 from VideoParser import VideoParser
 from decimal import *
 from PresetChannels import *
-
+from LiveChannels import *
 
 # overlay window to catch events and change channels
 class TVOverlay(xbmcgui.WindowXMLDialog):
@@ -95,6 +95,10 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
         # Read in general settings
         if self.readConfig() == False:
             return
+
+        #
+        #self.LiveChannels =LiveChannels()
+        #self.LiveChannels.buildFoxNewsLive('87249')
 
         # set auto reset timer if enabled        
         if self.autoChannelReset:
@@ -185,22 +189,23 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
         except:
             self.lastResetTime = 0
 
-        self.tvCommercials = ADDON_SETTINGS.getSetting("tvcommercials") == "true"
-        self.log('TV Commercials Enabled - ' + str(self.tvCommercials))
-        self.numTVCommercials = ADDON_SETTINGS.getSetting("numtvcommercials") 
-        self.log('Number of Commercials Between TV Files - ' + str(self.numTVCommercials))
-        self.maxTVCommercials = int(ADDON_SETTINGS.getSetting("maxtvcommercials")) + 1
-        self.log('Max Number of Commercials Between TV Files - ' + str(self.maxTVCommercials))
-        self.tvBumpers = ADDON_SETTINGS.getSetting("tvbumpers") == "true"
-        self.log('TV Bumpers Enabled - ' + str(self.tvBumpers))
-        self.numTVBumpers = ADDON_SETTINGS.getSetting("numtvbumpers")
-        self.log('Number of Bumpers Between TV Files - ' + str(self.numTVBumpers))
-        self.maxTVBumpers = int(ADDON_SETTINGS.getSetting("maxtvbumpers")) + 1
-        self.log('Max Number of Bumpers Between TV Files - ' + str(self.maxTVBumpers))
-        self.tvCommercialsFolder = ADDON_SETTINGS.getSetting("tvcommercialsfolder")
-        self.log('TV Commercials Folder - ' + str(self.tvCommercialsFolder))
-        self.tvBumpersFolder = ADDON_SETTINGS.getSetting("tvbumpersfolder")
-        self.log('TV Bumpers Folder - ' + str(self.tvBumpersFolder))
+        self.commercials = ADDON_SETTINGS.getSetting("commercials") == "true"
+        self.log('TV Commercials Enabled - ' + str(self.commercials))
+        self.numCommercials = ADDON_SETTINGS.getSetting("numcommercials") 
+        self.log('Number of Commercials Between TV Files - ' + str(self.numCommercials))
+        self.maxCommercials = int(ADDON_SETTINGS.getSetting("maxcommercials")) + 1
+        self.log('Max Number of Commercials Between TV Files - ' + str(self.maxCommercials))
+        self.commercialsFolder = ADDON_SETTINGS.getSetting("commercialsfolder")
+        self.log('TV Commercials Folder - ' + str(self.commercialsFolder))
+
+        self.bumpers = ADDON_SETTINGS.getSetting("bumpers") == "true"
+        self.log('TV Bumpers Enabled - ' + str(self.bumpers))
+        self.numBumpers = ADDON_SETTINGS.getSetting("numbumpers")
+        self.log('Number of Bumpers Between TV Files - ' + str(self.numBumpers))
+        self.maxBumpers = int(ADDON_SETTINGS.getSetting("maxbumpers")) + 1
+        self.log('Max Number of Bumpers Between TV Files - ' + str(self.maxBumpers))
+        self.bumpersFolder = ADDON_SETTINGS.getSetting("bumpersfolder")
+        self.log('TV Bumpers Folder - ' + str(self.bumpersFolder))
 
         self.trailers = ADDON_SETTINGS.getSetting("trailers") == "true"
         self.log('Movie Trailers Enabled - ' + str(self.trailers))
@@ -208,33 +213,8 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
         self.log('Number of Trailers Between Movie Files - ' + str(self.numTrailers))
         self.maxTrailers = int(ADDON_SETTINGS.getSetting("maxtrailers")) + 1
         self.log('Max Number of Trailers Between Movie Files - ' + str(self.maxTrailers))
-        self.movieBumpers = ADDON_SETTINGS.getSetting("moviebumpers") == "true"
-        self.log('Movie Bumpers Enabled - ' + str(self.movieBumpers))
-        self.numMovieBumpers = ADDON_SETTINGS.getSetting("nummoviebumpers")
-        self.log('Number of Bumpers Between Movie Files - ' + str(self.numMovieBumpers))
-        self.maxMovieBumpers = int(ADDON_SETTINGS.getSetting("maxmoviebumpers")) + 1
-        self.log('Max Number of Bumpers Between Movie Files - ' + str(self.maxMovieBumpers))
         self.trailersFolder = ADDON_SETTINGS.getSetting("trailersfolder")
         self.log('Trailers Folder - ' + str(self.trailersFolder))
-        self.movieBumpersFolder = ADDON_SETTINGS.getSetting("moviebumpersfolder")
-        self.log('Movie Bumpers Folder - ' + str(self.movieBumpersFolder))
-
-        self.mixCommercials = ADDON_SETTINGS.getSetting("mixcommercials") == "true"
-        self.log('Mix Channel Commercials Enabled - ' + str(self.mixCommercials))
-        self.numMixCommercials = ADDON_SETTINGS.getSetting("nummixcommercials")
-        self.log('Number of Commercials Between Mix Files - ' + str(self.numMixCommercials))
-        self.maxMixCommercials = int(ADDON_SETTINGS.getSetting("maxmixcommercials")) + 1
-        self.log('Max Number of Commercials Between Mix Files - ' + str(self.maxMixCommercials))
-        self.mixBumpers = ADDON_SETTINGS.getSetting("mixbumpers") == "true"
-        self.log('Mix Bumpers Enabled - ' + str(self.mixBumpers))
-        self.numMixBumpers = ADDON_SETTINGS.getSetting("nummixbumpers")
-        self.log('Number of Bumpers Between Mix Files - ' + str(self.numMixBumpers))
-        self.maxMixBumpers = int(ADDON_SETTINGS.getSetting("maxmixbumpers")) + 1
-        self.log('Max Number of Bumpers Between Mix Files - ' + str(self.maxMixBumpers))
-        self.mixCommercialsFolder = ADDON_SETTINGS.getSetting("mixcommercialsfolder")
-        self.log('Mix Commercials Folder - ' + str(self.mixCommercialsFolder))
-        self.mixBumpersFolder = ADDON_SETTINGS.getSetting("mixbumpersfolder")
-        self.log('Mix Bumpers Folder - ' + str(self.mixBumpersFolder))
 
         self.log("readConfig: Completed")
 
@@ -759,285 +739,25 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
             self.log("makeChannelList: Playlist returned no files", xbmc.LOGERROR)
             return False
         else:
-            # here is where we need to insert commercials and/or bumpers into the filelist        
-            # need to determine what type of filelist it is so we can lookup whether we need to add commercials, bumpers, and/or trailers.
-            # episodes
-            # movies
-            # tvshow
-            # mixedtvshows
-            # mixedtvandmovies
-            newFileList = []
             self.log("makeChannelList: self.channelType=" + str(self.channelType))
-            if self.channelType == "episodes" or self.channelType == "tvshow":
-                # check if we need to add commercials or bumpers
-                if (self.tvCommercials == True and os.path.exists(self.tvCommercialsFolder)) or (self.tvBumpers == True and os.path.exists(self.tvBumpersFolder)):                    
-                    # check if we need to add commercials
-                    if self.tvCommercials == True and os.path.exists(self.tvCommercialsFolder):
-                        # check for channel specific commercials
-                        if os.path.exists(os.path.join(self.tvCommercialsFolder, channelName)):
-                            tvCommercialsFolder = os.path.join(self.tvCommercialsFolder, channelName)
-                        else:
-                            tvCommercialsFolder = self.tvCommercialsFolder                
-                        # check if number of commercials set to auto
-                        if self.numTVCommercials == "0":
-                            # need to determine how many commercials are available compared with number of files in tv channel to get a ratio
-                            numTotalTVCommercials = len(glob.glob(os.path.join(tvCommercialsFolder, '*.*')))
-                            if numTotalTVCommercials > 0:
-                                tvCommercialInterval = len(fileList) / numTotalTVCommercials
-                                # if there are more commercials than files in the channel, set interval to 1
-                                if tvCommercialInterval < 1:
-                                    tvCommercialInterval = 1
-                                # need to determine number of commercials to play during interval
-                                numTVCommercials = numTotalTVCommercials / len(fileList)
-                                if numTVCommercials < 1:
-                                    numTVCommercials = 1
-                                if numTVCommercials > self.maxTVCommercials:
-                                    numTVCommercials = self.maxTVCommercials
-                            else:
-                                tvCommercialInterval = 0
-                                numTVCommercials = 0
-                        else:
-                            tvCommercialInterval = 1
-                            numTVCommercials = self.numTVCommercials
-                    # check if we need to add bumpers                    
-                    if self.tvBumpers == True and os.path.exists(self.tvBumpersFolder):
-                        # check if number of commercials set to auto
-                        if self.numTVBumpers == "0":
-                            # need to determine how many bumpers are available compared with number of files in tv channel to get a ratio
-                            numTotalBumpers = len(glob.glob(os.path.join(self.tvBumpersFolder, channelName, '*.*')))
-                            if numTotalBumpers > 0:
-                                tvBumperInterval = len(fileList) / numTotalBumpers
-                                # if there are more bumpers than files in the channel, set interval to 1
-                                if tvBumperInterval < 1:
-                                    tvBumperInterval = 1
-                                # need to determine number of bumpers to play during interval
-                                numTVBumpers = numTotalBumpers / len(fileList)
-                                if numTVBumpers < 1:
-                                    numTVBumpers = 1
-                                if numTVBumpers > self.maxTVBumpers:
-                                    numTVBumpers = self.maxTVBumpers
-                            else:
-                                tvBumperInterval = 0
-                                numTVBumpers = 0
-                        else:
-                            tvBumperInterval = 1                
-                            numTVBumpers = self.numTVBumpers
-                    # insert commercials and/or bumpers into fileList
-                    for i in range(len(fileList)):
-                        self.log('makeChannelList: Inserting file')
-                        newFileList.append(fileList[i])
-                        # mix in bumpers                                                
-                        if self.tvBumpers == True and not tvBumperInterval == 0:
-                            if (i+1) % tvBumperInterval == 0:
-                                self.log("makeChannelList: Add Bumper")
-                                for n in range(int(numTVBumpers)):
-                                    bumperFile = self.getFile(os.path.join(self.tvBumpersFolder, channelName))
-                                    self.log("makeChannelList: bumperFile=" + str(bumperFile))
-                                    if len(bumperFile) > 0:
-                                        self.log('makeChannelList: Inserting Bumper')
-                                        newFileList.append(bumperFile)
-                                    else:
-                                        self.log('makeChannelList: Unable to get bumper')
-                                    n = n + 1
-                        # mix in commercials                                                
-                        if self.tvCommercials == True and not tvCommercialInterval == 0:
-                            self.log("makeChannelList: Begin Inserting Commercials")
-                            if (i+1) % tvCommercialInterval == 0:
-                                self.log("makeChannelList: Add Commercial")
-                                for n in range(int(numTVCommercials)):
-                                    commercialFile = self.getFile(tvCommercialsFolder)
-                                    self.log("makeChannelList: commercialFile=" + str(commercialFile))
-                                    if len(commercialFile) > 0:
-                                        self.log('makeChannelList: Inserting Commercial')
-                                        newFileList.append(commercialFile)
-                                    else:
-                                        self.log('makeChannelList: Unable to get commercial')                                        
-                                    n = n + 1
-                        i = i + 1
-                    fileList = newFileList                    
-
-            elif self.channelType == "movies":            
-                # check if we need to add commercials or bumpers
-                if (self.trailers == True and os.path.exists(self.trailersFolder)) or (self.movieBumpers == True and os.path.exists(self.movieBumpersFolder)):
-                    # check if we need to add commercials
-                    if self.trailers == True and os.path.exists(self.trailersFolder):
-                        # check for channel specific trailers
-                        if os.path.exists(self.trailersFolder):
-                            if os.path.exists(os.path.join(self.trailersFolder, channelName)):
-                                trailersFolder = os.path.join(self.trailersFolder, channelName)
-                            else:
-                                trailersFolder = self.trailersFolder                
-                            if self.numTrailers == "0":
-                                # need to determine how many commercials are available compared with number of files in tv channel to get a ratio
-                                numTotalTrailers = len(glob.glob(os.path.join(trailersFolder, '*.*')))
-                                if numTotalTrailers > 0:
-                                    trailerInterval = len(fileList) / numTotalTrailers
-                                    # if there are more commercials than files in the channel, set interval to 1
-                                    if trailerInterval < 1:
-                                        trailerInterval = 1
-                                    # need to determine number of bumpers to play during interval
-                                    numTrailers = numTotalTrailers / len(fileList)
-                                    if numTrailers < 1:
-                                        numTrailers = 1
-                                    if numTrailers > self.maxTrailers:
-                                        numTrailers = self.maxTrailers
-                                else:
-                                    trailerInterval = 0
-                                    numTrailers = 0
-                            else:
-                                trailerInterval = 1
-                                numTrailers = self.numTrailers
-                    # check if we need to add bumpers                    
-                    if self.movieBumpers == True and os.path.exists(self.movieBumpersFolder):
-                        if self.numMovieBumpers == "0":
-                            # need to determine how many commercials are available compared with number of files in tv channel to get a ratio
-                            # max for auto is 1 commercial between shows
-                            numTotalBumpers = len(glob.glob(os.path.join(self.movieBumpersFolder, channelName, '*.*')))
-                            if numTotalBumpers > 0:
-                                movieBumperInterval = len(fileList) / numTotalBumpers
-                                # if there are more bumpers than files in the channel, set interval to 1
-                                if movieBumperInterval < 1:
-                                    movieBumperInterval = 1
-                                # need to determine number of bumpers to play during interval
-                                numMovieBumpers = numTotalBumpers / len(fileList)
-                                if numMovieBumpers < 1:
-                                    numMovieBumpers = 1
-                                if numMovieBumpers > self.maxMovieBumpers:
-                                    numMovieBumpers = self.maxMovieBumpers
-                            else:
-                                movieBumperInterval = 0
-                                numMovieBumpers = 0
-                        else:
-                            movieBumperInterval = 1
-                            numMovieBumpers = self.numMovieBumpers
-                    # insert commercials and/or bumpers into fileList
-                    for i in range(len(fileList)):
-                        self.log('makeChannelList: Inserting file')
-                        newFileList.append(fileList[i])
-                        # mix in bumpers
-                        if self.movieBumpers == True and not movieBumperInterval == 0:
-                            if (i+1) % movieBumperInterval == 0:
-                                self.log("makeChannelList: Add Bumper")
-                                for n in range(int(numMovieBumpers)):
-                                    bumperFile = self.getFile(os.path.join(self.movieBumpersFolder, channelName))
-                                    self.log("makeChannelList: bumperFile=" + str(bumperFile))
-                                    if len(bumperFile) > 0:
-                                        self.log('makeChannelList: Inserting Bumper')
-                                        newFileList.append(bumperFile)
-                                    else:
-                                        self.log('makeChannelList: Unable to get bumper')
-                                    n = n + 1
-                        # mix in trailers                                               
-                        if self.trailers == True and not trailerInterval == 0:
-                            if (i+1) % trailerInterval == 0:
-                                self.log("makeChannelList: Add Trailer")
-                                for n in range(int(numTrailers)):
-                                    trailerFile = self.getFile(trailersFolder)
-                                    self.log("makeChannelList: trailerFile=" + str(trailerFile))
-                                    if len(trailerFile) > 0:
-                                        self.log('makeChannelList: Inserting Trailer')
-                                        newFileList.append(trailerFile)
-                                    else:
-                                        self.log('makeChannelList: Unable to get trailer')                                        
-                                    n = n + 1
-                        i = i + 1
-                    fileList = newFileList
-
-            elif self.channelType == "mixedtvshows" or self.channelType == "mixedtvandmovies": # network channels or tv series (e.g. stargate, startrek)
-                # check if we need to add commercials or bumpers
-                if (self.mixCommercials == True and os.path.exists(self.mixCommercialsFolder)) or (self.mixBumpers == True and os.path.exists(self.mixBumpersFolder)):
-                    # check if we need to add commercials
-                    if self.mixCommercials == True and os.path.exists(self.mixCommercialsFolder):
-                        # check for channel specific trailers
-                        if os.path.exists(os.path.join(self.mixCommercialsFolder, channelName)):
-                            mixCommercialsFolder = os.path.join(self.mixCommercialsFolder, channelName)
-                        else:
-                            mixCommercialsFolder = self.mixCommercialsFolder
-                        if self.numMixCommercials == "0":
-                            # need to determine how many commercials are available compared with number of files in tv channel to get a ratio
-                            numTotalCommercials = len(glob.glob(os.path.join(mixCommercialsFolder, '*.*')))
-                            if numTotalCommercials > 0:
-                                mixCommercialInterval = len(fileList) / numTotalCommercials
-                                # if there are more commercials than files in the channel, set interval to 1
-                                if mixCommercialInterval < 1:
-                                    mixCommercialInterval = 1
-                                # need to determine number of commercials to play during interval
-                                numMixCommercials = numTotalCommercials / len(fileList)
-                                if numMixCommercials < 1:
-                                    numMixCommercials = 1
-                                if numMixCommercials > self.maxMixCommercials:
-                                    numMixCommercials = self.maxMixCommercials
-                            else:
-                                mixCommercialInterval = 0
-                                numMixCommercials = 0
-                        else:
-                            mixCommercialInterval = 1
-                            numMixCommercials = self.numMixCommercials
-                    # check if we need to add bumpers                    
-                    if self.mixBumpers == True and os.path.exists(self.mixBumpersFolder):
-                        if self.numMixBumpers == "0":
-                            # need to determine how many commercials are available compared with number of files in tv channel to get a ratio
-                            numTotalBumpers = len(glob.glob(os.path.join(self.mixBumpersFolder, channelName, '*.*')))
-                            if numTotalBumpers > 0:
-                                mixBumperInterval = len(fileList) / numTotalBumpers
-                                # if there are more bumpers than files in the channel, set interval to 1
-                                if mixBumperInterval < 1:
-                                    mixBumperInterval = 1
-                                # need to determine number of bumpers to play during interval
-                                numMixBumpers = numTotalBumpers / len(fileList)
-                                if numMixBumpers < 1:
-                                    numMixBumpers = 1
-                                if numMixBumpers > self.maxMixBumpers:
-                                    numMixBumpers = self.maxMixBumpers
-                            else:
-                                mixBumperInterval = 0
-                                numMixBumpers = 0
-                        else:
-                            mixBumperInterval = 1
-                            numMixBumpers = 1
-                    # insert commercials and/or bumpers into fileList
-                    for i in range(len(fileList)):
-                        self.log('makeChannelList: Inserting file')
-                        newFileList.append(fileList[i])
-                        # mix in commercials and/or bumpers
-                        if self.mixBumpers == True and not mixBumperInterval == 0:
-                            if (i+1) % mixBumperInterval == 0:
-                                self.log("makeChannelList: Add Bumper")
-                                for n in range(int(numMixBumpers)):
-                                    bumperFile = self.getFile(os.path.join(self.mixBumpersFolder, channelName))
-                                    self.log("makeChannelList: bumperFile=" + str(bumperFile))
-                                    if len(bumperFile) > 0:
-                                        self.log('makeChannelList: Inserting bumper')
-                                        newFileList.append(bumperFile)
-                                    else:
-                                        self.log('makeChannelList: Unable to get bumper')
-                                    n = n + 1
-                        if self.mixCommercials == True and not mixCommercialInterval == 0:
-                            self.log("makeChannelList: Begin Inserting Commercials")
-                            if (i+1) % mixCommercialInterval == 0:
-                                self.log("makeChannelList: Add Commercial")
-                                for n in range(int(numMixCommercials)):
-                                    commercialFile = self.getFile(mixCommercialsFolder)
-                                    self.log("makeChannelList: commercialFile=" + str(commercialFile))
-                                    if len(commercialFile) > 0:
-                                        self.log('makeChannelList: Inserting Commercial ' + str(commercialFile))
-                                        newFileList.append(commercialFile)
-                                    else:
-                                        self.log('makeChannelList: Unable to get commercial')                                        
-                                    n = n + 1
-                        i = i + 1
-                    fileList = newFileList
-                        
-            # valid channel
-            if m3uNum == None:
-                self.nextM3uChannelNum = self.nextM3uChannelNum + 1
-                m3uNum = self.nextM3uChannelNum
-                self.log("makeChannelList: m3uNum=" + str(m3uNum))
-                self.log("makeChannelList: self.nextM3uChannelNum: " + str(self.nextM3uChannelNum))
-            if self.writeM3u(m3uNum, fileList) == True:
-                return True
+            if self.channelType == "movies":
+                if (self.trailers == True and os.path.exists(self.trailersFolder)):
+                    fileList = self.addTrailers(fileList, channelName)
             else:
-                return False
+                if (self.commercials == True and os.path.exists(self.commercialsFolder)) or (self.bumpers == True and os.path.exists(self.bumpersFolder)):
+                    fileList = self.addCommercialsAndBumpers(fileList, channelName)
+
+        # valid channel
+        if m3uNum == None:
+            self.nextM3uChannelNum = self.nextM3uChannelNum + 1
+            m3uNum = self.nextM3uChannelNum
+            self.log("makeChannelList: m3uNum=" + str(m3uNum))
+            self.log("makeChannelList: self.nextM3uChannelNum: " + str(self.nextM3uChannelNum))
+        
+        if self.writeM3u(m3uNum, fileList) == True:
+            return True
+        else:
+            return False
         self.log("makeChannelList: Completed")
 
 
@@ -1112,6 +832,159 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
         self.log("getFile: File=" + str(tmpstr))
         self.getFileTries = 0
         return str(self.getfile)
+
+
+    def addTrailers(self, fileList, channelName):
+        newFileList = []
+        # check if we need to add commercials
+        if self.trailers == True and os.path.exists(self.trailersFolder):
+            # check for channel specific trailers
+            if os.path.exists(self.trailersFolder):
+                if os.path.exists(os.path.join(self.trailersFolder, channelName)):
+                    trailersFolder = os.path.join(self.trailersFolder, channelName)
+                else:
+                    trailersFolder = self.trailersFolder                
+                if self.numTrailers == "0":
+                    # need to determine how many commercials are available compared with number of files in tv channel to get a ratio
+                    numTotalTrailers = len(glob.glob(os.path.join(trailersFolder, '*.*')))
+                    if numTotalTrailers > 0:
+                        trailerInterval = len(fileList) / numTotalTrailers
+                        # if there are more commercials than files in the channel, set interval to 1
+                        if trailerInterval < 1:
+                            trailerInterval = 1
+                        # need to determine number of bumpers to play during interval
+                        numTrailers = numTotalTrailers / len(fileList)
+                        if numTrailers < 1:
+                            numTrailers = 1
+                        if numTrailers > self.maxTrailers:
+                            numTrailers = self.maxTrailers
+                    else:
+                        trailerInterval = 0
+                        numTrailers = 0
+                else:
+                    trailerInterval = 1
+                    numTrailers = self.numTrailers
+            else:
+                trailerInterval = 0
+                numTrailers = 0
+
+            # insert commercials and/or bumpers into fileList
+            for i in range(len(fileList)):
+                self.log('makeChannelList: Inserting file')
+                newFileList.append(fileList[i])
+                # mix in trailers                                               
+                if self.trailers == True and not trailerInterval == 0:
+                    if (i+1) % trailerInterval == 0:
+                        self.log("makeChannelList: Add Trailer")
+                        for n in range(int(numTrailers)):
+                            trailerFile = self.getFile(trailersFolder)
+                            self.log("makeChannelList: trailerFile=" + str(trailerFile))
+                            if len(trailerFile) > 0:
+                                self.log('makeChannelList: Inserting Trailer')
+                                newFileList.append(trailerFile)
+                            else:
+                                self.log('makeChannelList: Unable to get trailer')                                        
+                            n = n + 1
+                i = i + 1
+        fileList = newFileList    
+        return fileList
+
+
+    def addCommercialsAndBumpers(self, fileList, channelName):
+        newFileList = []
+        # check if we need to add commercials
+        if self.commercials == True and os.path.exists(self.commercialsFolder):
+            # check for channel specific commercials
+            if os.path.exists(os.path.join(self.commercialsFolder, channelName)):
+                commercialsFolder = os.path.join(self.commercialsFolder, channelName)
+            else:
+                commercialsFolder = self.commercialsFolder                
+            # check if number of commercials set to auto
+            if self.numCommercials == "0":
+                # need to determine how many commercials are available compared with number of files in tv channel to get a ratio
+                numTotalCommercials = len(glob.glob(os.path.join(commercialsFolder, '*.*')))
+                if numTotalCommercials > 0:
+                    commercialInterval = len(fileList) / numTotalCommercials
+                    # if there are more commercials than files in the channel, set interval to 1
+                    if commercialInterval < 1:
+                        commercialInterval = 1
+                    # need to determine number of commercials to play during interval
+                    numCommercials = numTotalCommercials / len(fileList)
+                    if numCommercials < 1:
+                        numCommercials = 1
+                    if numCommercials > self.maxCommercials:
+                        numCommercials = self.maxCommercials
+                else:
+                    commercialInterval = 0
+                    numCommercials = 0
+            else:
+                commercialInterval = 1
+                numCommercials = self.numCommercials
+        else:
+            commercialInterval = 0
+            numCommercials = 0
+
+        # check if we need to add bumpers                    
+        if self.bumpers == True and os.path.exists(self.bumpersFolder):
+            # check if number of commercials set to auto
+            if self.numBumpers == "0":
+                # need to determine how many bumpers are available compared with number of files in tv channel to get a ratio
+                numTotalBumpers = len(glob.glob(os.path.join(self.bumpersFolder, channelName, '*.*')))
+                if numTotalBumpers > 0:
+                    bumperInterval = len(fileList) / numTotalBumpers
+                    # if there are more bumpers than files in the channel, set interval to 1
+                    if bumperInterval < 1:
+                        bumperInterval = 1
+                    # need to determine number of bumpers to play during interval
+                    numBumpers = numTotalBumpers / len(fileList)
+                    if numBumpers < 1:
+                        numBumpers = 1
+                    if numBumpers > self.maxBumpers:
+                        numBumpers = self.maxBumpers
+                else:
+                    bumperInterval = 0
+                    numBumpers = 0
+            else:
+                bumperInterval = 1                
+                numBumpers = self.numBumpers
+        else:
+            bumperInterval = 0
+            numBumpers = 0
+            
+        # insert commercials and/or bumpers into fileList
+        for i in range(len(fileList)):
+            self.log('makeChannelList: Inserting file')
+            newFileList.append(fileList[i])
+            # mix in bumpers                                                
+            if self.bumpers == True and not bumperInterval == 0:
+                if (i+1) % bumperInterval == 0:
+                    self.log("makeChannelList: Add Bumper")
+                    for n in range(int(numBumpers)):
+                        bumperFile = self.getFile(os.path.join(self.bumpersFolder, channelName))
+                        self.log("makeChannelList: bumperFile=" + str(bumperFile))
+                        if len(bumperFile) > 0:
+                            self.log('makeChannelList: Inserting Bumper')
+                            newFileList.append(bumperFile)
+                        else:
+                            self.log('makeChannelList: Unable to get bumper')
+                        n = n + 1
+            # mix in commercials                                                
+            if self.commercials == True and not commercialInterval == 0:
+                self.log("makeChannelList: Begin Inserting Commercials")
+                if (i+1) % commercialInterval == 0:
+                    self.log("makeChannelList: Add Commercial")
+                    for n in range(int(numCommercials)):
+                        commercialFile = self.getFile(commercialsFolder)
+                        self.log("makeChannelList: commercialFile=" + str(commercialFile))
+                        if len(commercialFile) > 0:
+                            self.log('makeChannelList: Inserting Commercial')
+                            newFileList.append(commercialFile)
+                        else:
+                            self.log('makeChannelList: Unable to get commercial')                                        
+                        n = n + 1
+            i = i + 1
+        fileList = newFileList
+        return fileList
 
 
     def writeM3u(self, channelNum, fileList):

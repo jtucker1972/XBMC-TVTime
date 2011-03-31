@@ -26,16 +26,6 @@
         <setting id="unwatched4" type="bool" label="30087" default="false" />
         <setting id="nospecials4" type="bool" label="30086" default="false" />
         <setting id="random4" type="bool" label="30097" default="true" />
-        <setting label="30050" type="lsep"/>
-        <setting type="sep"/>
-        <setting id="tvcommercials" type="bool" label="30055" default="false" />
-        <setting id="numtvcommercials" type="enum" label="30052" visible="eq(-1,true)" values="Auto|1|2|3|4|5" default="0"/>
-        <setting id="maxtvcommercials" type="enum" label="30042" visible="eq(-2,true)" values="1|2|3|4|5" default="0"/>
-        <setting id="tvcommercialsfolder" type="folder" visible="eq(-3,true)" label="30011" default="" />
-        <setting id="tvbumpers" type="bool" label="30056" default="false" />
-        <setting id="numtvbumpers" type="enum" label="30048" visible="eq(-1,true)" values="Auto|1|2|3|4|5" default="0"/>
-        <setting id="maxtvbumpers" type="enum" label="30043" visible="eq(-2,true)" values="1|2|3|4|5" default="0"/>
-        <setting id="tvbumpersfolder" type="folder" visible="eq(-3,true)" label="30012" default="" />
     </category>    
     <category label="Movie Settings">
         <setting label="30076" type="lsep"/>
@@ -44,16 +34,6 @@
         <setting id="resolution2" type="enum" label="30085" values="All|SD Only|720p or higher|1080p" default="0"/>
         <setting id="unwatched2" type="bool" label="30087" default="false" />
         <setting id="random2" type="bool" label="30097" default="true" />
-        <setting label="30049" type="lsep"/>
-        <setting type="sep"/>
-        <setting id="trailers" type="bool" label="30054" default="false" />
-        <setting id="numtrailers" type="enum" label="30053" visible="eq(-1,true)" values="Auto|1|2|3|4|5" default="0"/>
-        <setting id="maxtrailers" type="enum" label="30047" visible="eq(-2,true)" values="1|2|3|4|5" default="0"/>
-        <setting id="trailersfolder" type="folder" visible="eq(-3,true)" label="30013" default="" />
-        <setting id="moviebumpers" type="bool" label="30056" default="false" />
-        <setting id="nummoviebumpers" type="enum" label="30048" visible="eq(-1,true)" values="Auto|1|2|3|4|5" default="0"/>
-        <setting id="maxmoviebumpers" type="enum" label="30046" visible="eq(-2,true)" values="1|2|3|4|5" default="0"/>
-        <setting id="moviebumpersfolder" type="folder" visible="eq(-3,true)" label="30012" default="" />
     </category>    
     <category label="Mix Settings">
         <setting label="30075" type="lsep"/>
@@ -74,16 +54,46 @@
         <setting id="unwatched5" type="bool" label="30087" default="false" />
         <setting id="nospecials5" type="bool" label="30086" default="false" />
         <setting id="random5" type="bool" label="30097" default="true" />
-        <setting label="30050" type="lsep"/>
+    </category>
+    <category label="Bumpers">
+        <setting label="30041" type="lsep"/>
         <setting type="sep"/>
-        <setting id="mixcommercials" type="bool" label="30055" default="false" />
-        <setting id="nummixcommercials" type="enum" label="30052" visible="eq(-1,true)" values="Auto|1|2|3|4|5" default="0"/>
-        <setting id="maxmixcommercials" type="enum" label="30045" visible="eq(-2,true)" values="1|2|3|4|5" default="0"/>
-        <setting id="mixcommercialsfolder" type="folder" visible="eq(-3,true)" label="30011" default="" />
-        <setting id="mixbumpers" type="bool" label="30056" default="false" />
-        <setting id="nummixbumpers" type="enum" label="30048" visible="eq(-1,true)" values="Auto|1|2|3|4|5" default="0"/>
-        <setting id="maxmixbumpers" type="enum" label="30044" visible="eq(-2,true)" values="1|2|3|4|5" default="0"/>
-        <setting id="mixbumpersfolder" type="folder" visible="eq(-3,true)" label="30012" default="" />
+        <setting label="30039" type="text" enable="true"/>
+        <setting label="30056" id="bumpers" type="bool" default="false" />
+        <setting label="30036" type="text" visible="eq(-1,true)" enable="true"/>
+        <setting label="30012" id="bumpersfolder" type="folder" visible="eq(-2,true)" default="" />
+        <setting label="30037" type="text" visible="eq(-3,true) + !eq(-1,)" enable="true"/>
+        <setting label="30048" id="numbumpers" type="enum" visible="eq(-4,true) + !eq(-2,)" values="Auto|1|2|3|4|5" default="0"/>
+        <setting label="30038" type="text" visible="eq(-5,true) + !eq(-3,) + eq(-1,0)" enable="true"/>
+        <setting label="30043" id="maxbumpers" type="enum" visible="eq(-6,true) + !eq(-4,) + eq(-2,0)" values="1|2|3|4|5" default="0"/>
+        <setting type="sep"/>
+        <setting label="30033" type="text" visible="eq(-8,true)" enable="true"/>
+        <setting label="30031" type="text" visible="eq(-9,true)" enable="true"/>
+        <setting label="30032" type="text" visible="eq(-10,true)" enable="true"/>
+    </category>
+    <category label="Commercials">
+        <setting label="30040" type="lsep"/>
+        <setting type="sep"/>
+        <setting label="30035" type="text" enable="true"/>
+        <setting label="30055" id="commercials" type="bool" default="false" />
+        <setting label="30034" type="text" visible="eq(-1,true)" enable="true"/>
+        <setting label="30011" id="commercialsfolder" type="folder" visible="eq(-2,true)" default="" />
+        <setting label="30037" type="text" visible="eq(-3,true) + !eq(-1,)" enable="true"/>
+        <setting label="30052" id="numcommercials" type="enum" visible="eq(-4,true) + !eq(-2,)" values="Auto|1|2|3|4|5" default="0"/>
+        <setting label="30038" type="text" visible="eq(-5,true) + !eq(-3,) + eq(-1,0)" enable="true"/>
+        <setting label="30042" id="maxcommercials" type="enum" visible="eq(-6,true) + !eq(-4,) + eq(-2,0)" values="1|2|3|4|5" default="0"/>
+    </category>
+    <category label="Trailers">
+        <setting label="30044" type="lsep"/>
+        <setting type="sep"/>
+        <setting label="30029" type="text" enable="true"/>
+        <setting id="trailers" type="bool" label="30054" default="false" />
+        <setting label="30030" type="text" visible="eq(-1,true)" enable="true"/>
+        <setting id="trailersfolder" type="folder" visible="eq(-2,true)" label="30013" default="" />
+        <setting label="30037" type="text" visible="eq(-3,true) + !eq(-1,)" enable="true"/>
+        <setting id="numtrailers" type="enum" label="30053" visible="eq(-4,true) + !eq(-2,)" values="Auto|1|2|3|4|5" default="0"/>
+        <setting label="30038" type="text" visible="eq(-5,true) + !eq(-3,) + eq(-1,0)" enable="true"/>
+        <setting id="maxtrailers" type="enum" label="30047" visible="eq(-6,true) + !eq(-4,) + eq(-2,0)" values="1|2|3|4|5" default="0"/>
     </category>
     <category label="Group Order">
         <setting label="30074" type="lsep"/>

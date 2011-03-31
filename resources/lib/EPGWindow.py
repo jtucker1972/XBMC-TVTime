@@ -406,7 +406,7 @@ class EPGWindow(xbmcgui.WindowXMLDialog):
             self.setChannelButtons(self.shownTime + 1800, self.centerChannel)
         self.log("goRight focusEndTime=" + str(self.focusEndTime + 30))
         # increased from 30 to 60 due to short duration videos causing it to not want to move right
-        self.focusTime = self.focusEndTime + 60
+        self.focusTime = self.focusEndTime + 600
         self.setProperButton(self.focusRow, True)
         self.log('goRight return')
 
