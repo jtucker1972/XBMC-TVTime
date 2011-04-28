@@ -1,53 +1,57 @@
-#   Copyright (C) 2011 Jason Anderson
+#   Copyright (C) 2011 James A. Tucker
 #
 #
-# This file is part of PseudoTV.
+# This file is part of TV Time.
 #
-# PseudoTV is free software: you can redistribute it and/or modify
+# TV Time is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
 #
-# PseudoTV is distributed in the hope that it will be useful,
+# TV Time is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with PseudoTV.  If not, see <http://www.gnu.org/licenses/>.
-#
-#
-# Modified by James A. Tucker for TVTime
-#
-#
+# along with TV Time.  If not, see <http://www.gnu.org/licenses/>.
+
 import os
+import shutil
 import xbmcaddon, xbmc
+import Settings
 
-
-def log(msg, level = xbmc.LOGDEBUG):
-    xbmc.log(ADDON_ID + '-' + msg, level)
-
-
+#
+# Shared Settings Across Modules
+#
 ADDON_ID = 'script.tvtime'
-ADDON_VERSION = '1.0.16'
-ADDON_SETTINGS = xbmcaddon.Addon(id=ADDON_ID)
-ADDON_INFO = ADDON_SETTINGS.getAddonInfo('path')
+ADDON_SETTINGS = Settings.Settings()
+REAL_SETTINGS = xbmcaddon.Addon(id=ADDON_ID)
+ADDON_INFO = REAL_SETTINGS.getAddonInfo('path')
+
+VERSION = "1.0.2"
 
 TIMEOUT = 15 * 1000
+TOTAL_FILL_CHANNELS = 20
+
+MODE_RESUME = 1
+MODE_ALWAYSPAUSE = 2
+MODE_ORDERAIRDATE = 4
+MODE_SERIAL = MODE_RESUME | MODE_ALWAYSPAUSE | MODE_ORDERAIRDATE
+
+MODE_UNWATCHED = 1
+MODE_NOSPECIALS = 1
+MODE_RANDOM_FILELISTS = 1
+
+NUMBER_CHANNEL_TYPES = 9
 
 IMAGES_LOC = xbmc.translatePath(os.path.join(ADDON_INFO, 'resources', 'images')) + '/'
-
-if ADDON_SETTINGS.getSetting("CustomChannelLogoFolder") == "true":
-    if ADDON_SETTINGS.getSetting("ChannelLogoFolder") == "":
-        LOGOS_LOC = xbmc.translatePath(os.path.join(ADDON_INFO, 'resources', 'logos')) + '/'
-    else:
-        LOGOS_LOC = xbmc.translatePath(ADDON_SETTINGS.getSetting("ChannelLogoFolder")) + '/'
-else:
-    LOGOS_LOC = xbmc.translatePath(os.path.join(ADDON_INFO, 'resources', 'logos')) + '/'
-
-
+PRESETS_LOC = xbmc.translatePath(os.path.join(ADDON_INFO, 'resources', 'presets')) + '/'
 CHANNELS_LOC = xbmc.translatePath('special://profile/addon_data/' + ADDON_ID + '/cache/')
-PRESETS_LOC = xbmc.translatePath('special://profile/addon_data/' + ADDON_ID + '/presets/')
+GEN_CHAN_LOC = os.path.join(CHANNELS_LOC, 'generated') + '/'
+PRESTAGE_LOC = os.path.join(CHANNELS_LOC, 'prestaged') + '/'
+TEMP_LOC = os.path.join(CHANNELS_LOC, 'temp') + '/'
+META_LOC = os.path.join(CHANNELS_LOC, 'meta') + '/'
 
 TIME_BAR = 'pstvTimeBar.png'
 BUTTON_FOCUS = 'pstvButtonFocus.png'
@@ -70,7 +74,7 @@ ACTION_STEP_FOWARD = 17
 ACTION_STEP_BACK = 18
 ACTION_BIG_STEP_FORWARD = 19
 ACTION_BIG_STEP_BACK = 20
-ACTION_OSD = 21
+ACTION_OSD = 122
 ACTION_NUMBER_0 = 58
 ACTION_NUMBER_1 = 59
 ACTION_NUMBER_2 = 60
@@ -88,3 +92,147 @@ ACTION_PLAYER_PLAYPAUSE = 76
 #ACTION_MENU = 117
 ACTION_MENU = 7
 ACTION_INVALID = 999
+
+#
+# used for program control
+#
+prestageThreadExit = 0
+savingSettings = 0
+exitingTVTime = 0
+autoResetChannelActive = 0
+forceChannelResetActive = 0
+userExit = 0
+channelsReset = 0
+resetSettings2 = 0
+resetPrestage = 0
+
+
+################################################################
+################################################################
+#
+# Migration Code
+#
+################################################################
+################################################################
+
+def migrate():
+    log("migration")
+    curver = "0.0.0"
+    
+    try:
+        curver = REAL_SETTINGS.getSetting("Version")
+    except:
+        pass
+
+    if curver == "":
+        # migrate 1.0 to 2.0
+        # delete channels.xml
+        channelSettingsFile = xbmc.translatePath('special://profile/addon_data/' + ADDON_ID + '/channels.xml')
+        if os.path.exists(channelSettingsFile):
+            try:
+                os.remove(channelSettingsFile)
+            except:
+                self.log("Unable to delete " + str(channelSettingsFile))
+        # delete presets directory
+        presetsFolder = xbmc.translatePath('special://profile/addon_data/' + ADDON_ID + '/presets/')
+        if os.path.exists(presetsFolder):
+            try:
+                shutil.rmtree(presetsFolder)
+            except:
+                self.log("Unable to delete " + str(presetsFolder))
+                
+        # delete cache directory
+        cacheFolder = xbmc.translatePath('special://profile/addon_data/' + ADDON_ID + '/cache/')
+        if os.path.exists(cacheFolder):
+            try:
+                shutil.rmtree(cacheFolder)
+            except:
+                self.log("Unable to delete " + str(cacheFolder))
+
+        # migrate settings
+        # version 1.0 Settings
+        AutoOff = REAL_SETTINGS.getSetting("AutoOff")
+        ChannelLogoFolder = REAL_SETTINGS.getSetting("ChannelLogoFolder")
+        ChannelResetSetting = REAL_SETTINGS.getSetting("ChannelResetSetting")
+        ChannelResetSettingTime = REAL_SETTINGS.getSetting("ChannelResetSettingTime")
+        CurrentChannel = REAL_SETTINGS.getSetting("CurrentChannel")
+        ForceChannelReset = REAL_SETTINGS.getSetting("ForceChannelReset")
+        InfoOnChange = REAL_SETTINGS.getSetting("InfoOnChange")
+        LastResetTime = REAL_SETTINGS.getSetting("LastResetTime")
+        ShowChannelBug = REAL_SETTINGS.getSetting("ShowChannelBug")
+        maxbumpers = REAL_SETTINGS.getSetting("maxbumpers")
+        maxcommercials = REAL_SETTINGS.getSetting("maxcommercials")
+        maxtrailers = REAL_SETTINGS.getSetting("maxtrailers")
+        numbumpers = REAL_SETTINGS.getSetting("numbumpers")
+        numcommercials = REAL_SETTINGS.getSetting("numcommercials")
+        numtrailers = REAL_SETTINGS.getSetting("numtrailers")
+        trailers = REAL_SETTINGS.getSetting("trailers")
+        trailersfolder = REAL_SETTINGS.getSetting("trailersfolder")
+        commercials = REAL_SETTINGS.getSetting("commercials")
+        commercialsfolder = REAL_SETTINGS.getSetting("commercialsfolder")
+        bumpers = REAL_SETTINGS.getSetting("bumpers")
+        bumpersfolder = REAL_SETTINGS.getSetting("bumpersfolder")
+
+        # delete settings.xml
+        settingsFile = xbmc.translatePath('special://profile/addon_data/' + ADDON_ID + '/settings.xml')
+        if os.path.exists(settingsFile):
+            try:
+                os.remove(settingsFile)
+            except:
+                self.log("Unable to delete " + str(settingsFile))
+
+        # create version 2.0 settings.xml
+        REAL_SETTINGS.setSetting("AutoOff",AutoOff)
+        REAL_SETTINGS.setSetting("ChannelLogoFolder",ChannelLogoFolder)
+        REAL_SETTINGS.setSetting("CurrentChannel",CurrentChannel)
+        REAL_SETTINGS.setSetting("ForceChannelReset",ForceChannelReset)
+        REAL_SETTINGS.setSetting("InfoOnChange",InfoOnChange)
+        REAL_SETTINGS.setSetting("LastResetTime",LastResetTime)
+        REAL_SETTINGS.setSetting("ShowChannelBug",ShowChannelBug)
+
+        REAL_SETTINGS.setSetting("autoChannelReset","false")
+
+        if ChannelResetSetting > 0 and ChannelResetSetting < 4:
+            # autoChannelResetSetting = 4
+            REAL_SETTINGS.setSetting("autoChannelResetSetting","4") # Scheduled
+            if ChannelResetSetting == 1: # Every Day
+                REAL_SETTINGS.setSetting("autoChannelResetInterval","0") # Daily
+            if ChannelResetSetting == 2: # Every Week
+                REAL_SETTINGS.setSetting("autoChannelResetInterval","0") # Weekly
+            if ChannelResetSetting == 3: # Every Month
+                REAL_SETTINGS.setSetting("autoChannelResetInterval","0") # Monthly
+        REAL_SETTINGS.setSetting("autoChannelResetTime",ChannelResetSettingTime)           
+        REAL_SETTINGS.setSetting("autoChannelResetShutdown","false")
+
+        REAL_SETTINGS.setSetting("autoFindNetworks","true")
+        REAL_SETTINGS.setSetting("autoFindStudios","false")
+        REAL_SETTINGS.setSetting("autoFindTVGenres","false")
+        REAL_SETTINGS.setSetting("autoFindMovieGenres","true")
+        REAL_SETTINGS.setSetting("autoFindMusicGenres","false")
+        REAL_SETTINGS.setSetting("limit","0")
+
+        REAL_SETTINGS.setSetting("offair","false")
+        REAL_SETTINGS.setSetting("offairfile","")
+
+        REAL_SETTINGS.setSetting("bumpers",bumpers)
+        REAL_SETTINGS.setSetting("bumpersfolder",bumpersfolder)
+        REAL_SETTINGS.setSetting("numbumpers",numbumpers)
+        REAL_SETTINGS.setSetting("maxbumpers",maxbumpers)
+
+        REAL_SETTINGS.setSetting("commercials",commercials)
+        REAL_SETTINGS.setSetting("commercialsfolder",commercialsfolder)
+        REAL_SETTINGS.setSetting("numcommercials",numcommercials)
+        REAL_SETTINGS.setSetting("maxcommercials",maxcommercials)
+
+        REAL_SETTINGS.setSetting("trailers",trailers)
+        REAL_SETTINGS.setSetting("trailersfolder",trailersfolder)
+        REAL_SETTINGS.setSetting("numtrailers",numtrailers)
+        REAL_SETTINGS.setSetting("maxtrailers",maxtrailers)
+        
+    REAL_SETTINGS.setSetting("Version", VERSION)
+    
+
+def log(msg, level = xbmc.LOGDEBUG):
+    xbmc.log(ADDON_ID + '-' + msg, level)
+
+

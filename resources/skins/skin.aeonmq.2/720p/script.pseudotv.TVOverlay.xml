@@ -109,7 +109,7 @@
 				<aspectratio>scale</aspectratio>
 			</control>
 			
-			<control type="progress">
+			<!--<control type="progress">
 				<description>Progressbar</description>
 				<posx>75</posx>
 				<posy>50r</posy>
@@ -117,9 +117,9 @@
 				<height>8</height>
 				<info>Player.Progress</info>
 				<visible>false</visible>
-			</control>
+			</control>-->
 			
-			<control type="label">
+			<!--<control type="label">
                 <description>Current Video End Time</description>
                 <posx>50r</posx>
                 <posy>50r</posy>
@@ -132,7 +132,7 @@
                 <textcolor>grey2</textcolor>
                 <shadowcolor>black</shadowcolor>
 				<visible>false</visible>
-            </control>
+            </control>-->
 		</control>	
     </controls>
 </window>

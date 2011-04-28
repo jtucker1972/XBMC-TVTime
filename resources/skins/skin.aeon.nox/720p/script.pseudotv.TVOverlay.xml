@@ -52,7 +52,7 @@
 				<posy>520</posy>
 				<width>1280</width>
 				<height>270</height>
-				<texture>infoback.png</texture>
+				<texture>infoback2.png</texture>
 			</control>
 		
 			<control type="grouplist">

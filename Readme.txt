@@ -1,12 +1,11 @@
-TVTimefor XBMC
+TVTime for XBMC
 
 
 -----------
 What is it?
 -----------
-    It's a modification of the pseudoTV script created by Jason Anderson.  It's channel-surfing for your media center.  Never again will you have to actually pick what you want to watch.  Use an electronic program guide (EPG) to view what's on or select a show to watch.  This script will let you create your own channels and, you know, watch them.  Doesn't actually sound useful when I have to write it in a readme.  Eh, try it and decide if it works for you.
+    TV Time is a major modification of the pseudoTV script created by Jason Anderson.  It's channel-surfing for your media center.  Never again will you have to actually pick what you want to watch or listen to.  Use an electronic program guide (EPG) to view what's on or select a show to watch.  This script will let you create your own channels and, you know, watch them.  Doesn't actually sound useful when I have to write it in a readme.  Eh, try it and decide if it works for you.
 
-TVTime adds a new channel management system to make adding new channels as simple as enabling it in the add-on settings.  The new channel management system can automatically import your existing Channel_x files located in the video and mixed playlist folder allowing users to use previous channel configuration and/or the new system.
 
 --------
 Features
@@ -26,23 +25,9 @@ Setup
 
     Instructions to create your own channels.  Go to Add-on Settings and enable or disable the channels you want to use.  You can define how many episodes and movies to get for the channels as well as the ration of episodes and movies for mixed channels.  
 
+Auto Channel Creation via Enhanced Channel Configuration Wizard:
 
-Auto Channel Creation via Channel Management System:
-
-XBMC added a new Channel Management System to Jason Anderson's pseudoTV script.  The Channel Management System is located in the Add-on Settings.  There are over 200 predefined channels to chose from organized into various groups:  TV Genres, TV Decades, TV Networks, TV Shows, Movie Genres, Movie Decades, Movie Studios, Mixed Genre, and Mixed Decades.  Each group can be assigned 5 custom channels based on a manually created playlist (see below).  In addition, you can assign up to 100 custom playlists to the custom channels.
-
-If you have created Channel_x playlists which you used in pseudoTV, they will automatically be imported and assigned to the custom channels (1-100).  If you have more than 100 custom channels, the script will still import all your channels, but only 1-100 will be viewable via the Channel Management System.
-
-In addition to selecting which channel to enable in each group, you also can set general settings for TV Channels, Movie Channels and Mixed Channels.  This is where you can define the number of episodes or movies to get for each channel in those groups as well as whether you want to watch specials, previously watched, what resolution of movies, and whether you want the episodes randomized.  Tip:  All channels should be randomized except for TV Shows. If you want to watch the TV Show in order, then do not enable Randomize for TV Shows.
-
-
-Manually creating channels:
-
-Each channel is really just a smart playlist.  The name of the playlist is also the name your channel will have (that should be a feature...maybe I'll add it at some point).  This part is important: when it asks you what the filename of the playlist should be, name it "Channel_x" where 'x' is the number of the channel.  If you have made
-channels 1 and 2, though, don't skip to 4.  You must have sequential numbers or things will not work the way you'd like.
-    So when this thing starts up for the first time, it will read your play-lists in the video and mixed playlists folder and auto-configure these as custom channels in the channel management system.  Depending on how many channels you have and how many items are in each, this may take a couple of minutes.  After the first
-time, channels will only be updated occasionally.  Don't worry about when or why, just trust that it happens sometimes.  If you do care, you can modify the
-setting in the configuration.
+PseudoTV added a new Channel Configuration Tool.  TV Time has enhanced this new Channel Configuration tool to provide additional channel configuration options.  The Channel Configuration Tool is located in the Add-on Settings.
 
 
 --------
@@ -51,10 +36,11 @@ Controls
     There are only a few things you need to know in order to control every-thing.  First of all, the Stop button ('X') stops the video and exits the script.  Scroll through channels using the arrow up and down keys, or alternatively by pressing Page up or down.
     To open the EPG, press the Select key ('Enter').  Move around using the arrow keys.  Start a program by pressing Select.  Pressing Previous Menu ('Escape') will close the EPG.
     Press 'I' to display or hide the info window.  When it is displayed, you can look at the previous and next shows on this channel using arrow left and right.
+    Press 'M' to displey the OSD to enable/disable subtitles, etc.
 
 
 --------
-Settings
+General Settings
 --------
     Idle-Timer: The amount of time (in minutes) of idle time before the script is automatically stopped.
 
@@ -62,17 +48,98 @@ Settings
 
     Force Channel Reset: If you want your channels to be reanalyzed then you can turn this on.
 
-    Time Between Channel Resets: This is how often your channels will be reset. Generally, this is done automatically based on the duration of the individual channels and how long they've been watched.  You can change this to reset every certain time period (day, week, month).
-
-    Fill in Custom Channels: If enabled, it will import your custom Channel_x playlists and assign them to Custom Channels (1-100) in the Channel Management System.
+    Time Between Channel Resets: This is how often your channels will be reset. Generally, this is done automatically based on the duration of the individual channels and how long they've been watched.  You can change this to reset every certain time period (day, week, month or scheduled).  If scheduled, you can select how often Daily, Weekly or Monthly and the hour to run the channel reset.  If scheduled, you can also enable the option to exit XBMC after the reset has completed.
 
     Show Channel Logo: Always display the current channel logo.
+
+    Channel Logo Folder: Select an optional folder which contains your custom channel logos
+
+
+--------
+Channels Settings
+--------
+    Channel Configuration: opens the Channgel Configuration Wizard where you can manually configure your channels and configure advanced settings.
+
+    Auto Tune Settings: when enabled, TV Time will automatically search and add channels based on your XBMC library information.
+
+    Channel Limit:  set the number of episodes and/or movies to add for each channel.
+
+
+--------
+Off Air Settings
+--------
+    Off Air: Adds an "off air" video file that you select when no files are found for a channel.
+
+
+--------
+Bumpers Settings
+--------
+    Enable Bumpers:  When enabled, TV Time will insert bumpers between shows.
+
+    Bumpers Folder:  Folder where the bumper videos are found.  Bumpers are channel specific, so the video files need to be organized into subfolders matching the channel name.  For example, C:\Bumpers\ABC, C:\Bumpers\Comedy Central, etc.
+
+    Number of Bumpers to Show: Number of bumper videos to insert between shows.  If auto, TV Time will determine when to insert a bumper based on a ratio of the number of bumpers available and the number of shows in the channel
+
+   Maximum Number of Bumpers:  If Number of Bumpers set to Auto, this setting limits the maximum number of bumpers to insert between shows to the number selected.
+
+
+--------
+Commercials Settings
+--------
+    Enable Commercials:  When enabled, TV Time will insert commercials between shows.
+
+    Commercials Folder:  Folder where the commercial videos are found.  
+
+    Number of Commercials to Show: Number of commercial videos to insert between shows.  If auto, TV Time will determine when to insert a commercial based on a ratio of the number of bumpers available and the number of shows in the channel
+
+   Maximum Number of Commercials:  If Number of Commercials set to Auto, this setting limits the maximum number of commercials to insert between shows to the number selected.
+
+
+--------
+Trailers Settings
+--------
+    Enable Trailers:  When enabled, TV Time will insert trailers between movies.  Only applies to Movie channels.  It is pretty simplistic in version 2.0.  No trailer by genre or rating yet.
+
+    Trailers Folder:  Folder where the trailer videos are found.  
+
+    Number of Trailers to Show: Number of trailer videos to insert between movies.  If auto, TV Time will determine when to insert a bumper based on a ratio of the number of bumpers available and the number of shows in the channel
+
+   Maximum Number of Trailers:  If Number of Trailers set to Auto, this setting limits the maximum number of trailers to insert between shows to the number selected.
+
+
+--------
+Channel Configuration
+--------
+    Channel Types:  
+	TV Network - ABC, CBS, NBC, etc.
+	Movie Studio - Paramount, Lionsgate, Lucasfilm, etc.
+	TV Genre - Animation, Comedy, Drama, etc.
+	Movie Genre - Action, Crime, Family, etc.
+	Mixed Genre - Animation, Comedy, Fantasy, etc.
+	TV Show - 24, Star Trek, Doctor Who, etc.
+	Folder - E:\Childrens Videos, etc.
+	Music Genre - Classic Rock, Classical, Country, etc.
+	None - clears the channel
+
+    Resolution:
+	All - include all resolutions
+	SD Only - only include SD resolutions (less than 720p)
+	720p or Higher - only include HD resolutions
+	1080p - only include 1080p HD resolutions
+
+    Unwatched Only: Only include unwatched shows
+
+    No Specials: Do not include specials
+
+    Randomize TV Shows: Randomize the order TV Shows appear (Only valid for TV Network Channel Type)
+
+    Serial Mode:  When enabled shows are ordered by airdate. (Only valid for TV Network Channel Type)
 
 
 -------
 Credits
 -------
-Developers: Jason102 (original pseudoTV script), jtucker1972 (channel management system)
+Developers: Jason102 (original pseudoTV script), jtucker1972 (TV Time script)
 Code Additions: Sranshaft, TheOddLinguist
 Skins: Sranshaft, Zepfan
 Preset Playlists and Images: Jtucker1972

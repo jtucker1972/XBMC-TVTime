@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <addon
     id="script.tvtime"
-	version="1.0.16"
+	version="2.0.0"
 	name="TV Time"
 	provider-name="James A. Tucker">
 
@@ -16,8 +16,8 @@
 
 	<extension point="xbmc.addon.metadata">
 		<platform>all</platform>
-		<minversion>35661</minversion>
+		<minversion>35700</minversion>
 		<summary>Channel surfing for your video library</summary>
-		<description>TVTime is a modification of the pseudoTV script created by Jason Anderson.  It acts similar to normal broadcast or cable TV, complete with multiple preset and user-defined channels and an EPG.</description>
+		<description>TV Time was created as a spin off of PseudoTV aimed at expanding the core functionality.  It acts similar to normal broadcast or cable TV, complete with an EPG.  TV Time offers additional features to provide more flexibility for users when creating channels, setting when channel resets occur and offering faster channel resets by prestaging channels.  Users have the option of inserting commercials, bumpers and trailers into their channels.  TV Time also offers two additional channel types:  Folder based and Music Genres. </description>
 	</extension>
 </addon>

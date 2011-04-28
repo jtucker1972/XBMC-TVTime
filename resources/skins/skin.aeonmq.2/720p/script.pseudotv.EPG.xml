@@ -377,7 +377,7 @@
 				<font>font11_title</font>
 				<align>left</align>
 				<aligny>center</aligny>
-				<textcolor>default</textcolor>
+				<textcolor>white</textcolor>
 			</control>
 
 			<control type="label" id="102">
@@ -390,7 +390,7 @@
 				<font>font11_title</font>
 				<align>left</align>
 				<aligny>center</aligny>
-				<textcolor>default</textcolor>
+				<textcolor>white</textcolor>
 			</control>
 
 			<control type="label" id="103">
@@ -403,7 +403,6 @@
 				<font>font11_title</font>
 				<align>left</align>
 				<aligny>center</aligny>
-				<textcolor>default</textcolor>
 			</control>
 		</control>
 		

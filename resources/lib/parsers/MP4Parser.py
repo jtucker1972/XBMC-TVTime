@@ -68,7 +68,6 @@ class MP4Parser:
         data = self.readBlock()
 
         if data.boxtype != 'ftyp':
-#            self.log("No file block: " + data.boxtype)
             self.log("No file block")
             return 0
 

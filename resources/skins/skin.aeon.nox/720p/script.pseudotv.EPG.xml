@@ -484,7 +484,7 @@
 
 		<control type="grouplist">
 			<posx>60</posx>
-			<posy>600</posy>
+			<posy>610</posy>
 			<width>765</width>
 			<orientation>vertical</orientation>
 			<itemgap>4</itemgap>

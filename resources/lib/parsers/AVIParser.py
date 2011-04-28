@@ -125,7 +125,6 @@ class AVIParser:
 
 
     def determineLength(self, filename):
-        self.log("determineLength " + filename)
 
         try:
             self.File = open(filename, "rb")
@@ -135,14 +134,13 @@ class AVIParser:
 
         dur = self.readHeader()
         self.File.close()
-        self.log('Duration: ' + str(dur))
         return dur
 
 
     def readHeader(self):
         # AVI Chunk
         data = self.getChunkOrList()
-
+        
         if data.datatype != 2:
             self.log("Not an avi")
             return 0

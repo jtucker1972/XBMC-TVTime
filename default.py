@@ -15,23 +15,21 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with PseudoTV.  If not, see <http://www.gnu.org/licenses/>.
-#
-#
-# Modified by James A. Tucker for TVTime
-#
-#
 
 import sys
 import os
 import xbmc
 import xbmcaddon
 
+from resources.lib.Globals import *
+
+
 
 # Script constants
-__scriptname__ = "TVTime"
+__scriptname__ = "TV Time"
 __author__     = "jtucker1972"
 __url__        = "http://github.com/jtucker1972/XBMC-TVTime"
-__version__    = "1.0.16"
+__version__    = VERSION
 __settings__   = xbmcaddon.Addon(id='script.tvtime')
 __language__   = __settings__.getLocalizedString
 __cwd__        = __settings__.getAddonInfo('path')

@@ -1,5 +1,13 @@
 Changelog
 
+2.0.0 
+    Major release incorporated the latest PseudoTV updates and:
+	Added Folder Based Channels
+	Added Music Genre Channels
+	Added Auto Exit after Scheduled Reset
+	Added Enhanced Channel Configuration Wizard
+	Added Auto Tune feature to find and auto configure channels
+	Added Off Air feature to add a user selected video if no channel 	files are found	
 
 1.0.16
     Simplified Commercials, Bumpers and Trailers functionality

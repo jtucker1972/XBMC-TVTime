@@ -101,7 +101,7 @@
 				<width>300</width>
 				<height>150</height>
 				<aspectratio>scale</aspectratio>
-          			<colordiffuse>mainblue</colordiffuse>
+          			<colordiffuse>white</colordiffuse>
 			</control>
 			
 			<control type="progress">

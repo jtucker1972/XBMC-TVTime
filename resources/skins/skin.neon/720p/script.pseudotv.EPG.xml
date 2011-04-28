@@ -355,7 +355,7 @@
 				<posy>0</posy>
 				<width>962</width>
 				<height>40</height>
-				<texture border="5">pstvHeader3.png</texture>
+				<texture border="5">pstvHeader.png</texture>
 			</control>
 			
 			<control type="label" id="101">
@@ -503,7 +503,7 @@
 			<description>Show Description Label</description>
 			<posx>60</posx>
 			<posy>600</posy>
-			<width>900</width>
+			<width>850</width>
 			<height>100</height>
 			<font>Font_Neon_24</font>
 			<textcolor>white</textcolor>
@@ -525,7 +525,7 @@
 			<width>240</width>
 			<height>130</height>
 			<aspectratio>scale</aspectratio>
-          		<colordiffuse>mainblue</colordiffuse>
+          		<colordiffuse>white</colordiffuse>
 		</control>
         </control>
     </controls>
