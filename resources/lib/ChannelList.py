@@ -1297,8 +1297,10 @@ class ChannelList:
             ADDON_SETTINGS.setSetting("Channel_" + str(channel) + "_offair","0")
             commercials = REAL_SETTINGS.getSetting("commercials")
             commercialsfolder = REAL_SETTINGS.getSetting("commercialsfolder")
+            commercialInterval = 0            
             bumpers = REAL_SETTINGS.getSetting("bumpers")
             bumpersfolder = REAL_SETTINGS.getSetting("bumpersfolder")
+            bumperInterval = 0
             if (commercials == "true" and os.path.exists(commercialsfolder)) or (bumpers == "true" and os.path.exists(bumpersfolder)):
                 if (commercials == "true" and os.path.exists(commercialsfolder)) :
                     commercialInterval = self.getCommercialInterval(channel, len(fileList))
@@ -1771,8 +1773,10 @@ class ChannelList:
             else:
                 commercials = REAL_SETTINGS.getSetting("commercials")
                 commercialsfolder = REAL_SETTINGS.getSetting("commercialsfolder")
+                commercialInterval = 0
                 bumpers = REAL_SETTINGS.getSetting("bumpers")
                 bumpersfolder = REAL_SETTINGS.getSetting("bumpersfolder")
+                bumperInterval = 0
                 if (commercials == "true" and os.path.exists(commercialsfolder)) or (bumpers == "true" and os.path.exists(bumpersfolder)):
                     if (commercials == "true" and os.path.exists(commercialsfolder)):
                         commercialInterval = self.getCommercialInterval(channel, len(fileList))
