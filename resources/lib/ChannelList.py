@@ -24,6 +24,7 @@ import sys, re
 import random
 import shutil
 import glob
+import urllib2 
 
 from operator import itemgetter
 from time import time, localtime, strftime, strptime, mktime, sleep
@@ -391,6 +392,24 @@ class ChannelList:
         self.movieGenreList.sort(key=lambda x: x.lower())
         
 
+    def fillFeedInfo(self): 
+        self.log("fillFeedInfo")
+        feedsFile = os.path.join(FEED_LOC,"feeds.dat") 
+        feeds = open(feedsFile, "r") 
+
+        self.feedList = []
+
+        for feed in feeds: 
+            self.log("feed = " + str(feed))
+            data = feed.split('|') 
+            feedName = data[0] 
+            self.feedList.append(feedName.strip())
+
+        feeds.close()
+        
+        self.feedList.sort(key=lambda x: x.lower())
+
+
     def fillMixedGenreInfo(self):
         if len(self.mixedGenreList) == 0:
             if len(self.showGenreList) == 0:
@@ -447,30 +466,47 @@ class ChannelList:
                 channelNum = channelNum + 1
                 ADDON_SETTINGS.setSetting("Channel_" + str(channelNum) + "_type", "0")
                 ADDON_SETTINGS.setSetting("Channel_" + str(channelNum) + "_time", "0")
-                ADDON_SETTINGS.setSetting("Channel_" + str(channelNum) + "_1", "special://profile/playlists/video/Channel_" + str(i + 1) + ".xsp")
+                ADDON_SETTINGS.setSetting("Channel_" + str(channelNum) + "_1", xbmc.translatePath('special://profile/playlists/video/') + 'Channel_' + str(i + 1) + '.xsp')
                 ADDON_SETTINGS.setSetting("Channel_" + str(channelNum) + "_2", str(""))
-                ADDON_SETTINGS.setSetting("Channel_" + str(channelNum) + "_3", self.getSmartPlaylistName(xbmc.translatePath('special://profile/playlists/video') + '/Channel_' + str(i + 1) + '.xsp'))
+                ADDON_SETTINGS.setSetting("Channel_" + str(channelNum) + "_3", self.cleanString(self.getSmartPlaylistName(xbmc.translatePath('special://profile/playlists/video') + '/Channel_' + str(i + 1) + '.xsp')))
                 ADDON_SETTINGS.setSetting("Channel_" + str(channelNum) + "_4", str(""))
                 ADDON_SETTINGS.setSetting("Channel_" + str(channelNum) + "_5", str(""))
                 ADDON_SETTINGS.setSetting("Channel_" + str(channelNum) + "_6", str(""))
                 ADDON_SETTINGS.setSetting("Channel_" + str(channelNum) + "_7", str(""))
                 ADDON_SETTINGS.setSetting("Channel_" + str(channelNum) + "_8", str(""))
                 ADDON_SETTINGS.setSetting("Channel_" + str(channelNum) + "_9", str(""))
+                ADDON_SETTINGS.setSetting("Channel_" + str(channelNum) + "_playlist", xbmc.translatePath('special://profile/playlists/video/') + 'Channel_' + str(i + 1) + '.xsp')
                 self.updateDialog(progressIndicator,"Auto Tune","Found " + str(self.getSmartPlaylistName(xbmc.translatePath('special://profile/playlists/video') + '/Channel_' + str(i + 1) + '.xsp')),"")
             elif os.path.exists(xbmc.translatePath('special://profile/playlists/mixed') + '/Channel_' + str(i + 1) + '.xsp'):
                 channelNum = channelNum + 1
                 ADDON_SETTINGS.setSetting("Channel_" + str(channelNum) + "_type", "0")
                 ADDON_SETTINGS.setSetting("Channel_" + str(channelNum) + "_time", "0")
-                ADDON_SETTINGS.setSetting("Channel_" + str(channelNum) + "_1", "special://profile/playlists/mixed/Channel_" + str(i + 1) + ".xsp")
+                ADDON_SETTINGS.setSetting("Channel_" + str(channelNum) + "_1", xbmc.translatePath('special://profile/playlists/mixed/') + 'Channel_' + str(i + 1) + '.xsp')
                 ADDON_SETTINGS.setSetting("Channel_" + str(channelNum) + "_2", str(""))
-                ADDON_SETTINGS.setSetting("Channel_" + str(channelNum) + "_3", self.getSmartPlaylistName(xbmc.translatePath('special://profile/playlists/mixed') + '/Channel_' + str(i + 1) + '.xsp'))
+                ADDON_SETTINGS.setSetting("Channel_" + str(channelNum) + "_3", self.cleanString(self.getSmartPlaylistName(xbmc.translatePath('special://profile/playlists/mixed') + '/Channel_' + str(i + 1) + '.xsp')))
                 ADDON_SETTINGS.setSetting("Channel_" + str(channelNum) + "_4", str(""))
                 ADDON_SETTINGS.setSetting("Channel_" + str(channelNum) + "_5", str(""))
                 ADDON_SETTINGS.setSetting("Channel_" + str(channelNum) + "_6", str(""))
                 ADDON_SETTINGS.setSetting("Channel_" + str(channelNum) + "_7", str(""))
                 ADDON_SETTINGS.setSetting("Channel_" + str(channelNum) + "_8", str(""))
                 ADDON_SETTINGS.setSetting("Channel_" + str(channelNum) + "_9", str(""))
-                self.updateDialog(progressIndicator,"Auto Tune","Found " + str(self.getSmartPlaylistName(xbmc.translatePath('special://profile/playlists/video') + '/Channel_' + str(i + 1) + '.xsp')),"")
+                ADDON_SETTINGS.setSetting("Channel_" + str(channelNum) + "_playlist", xbmc.translatePath('special://profile/playlists/mixed/') + 'Channel_' + str(i + 1) + '.xsp')
+                self.updateDialog(progressIndicator,"Auto Tune","Found " + str(self.getSmartPlaylistName(xbmc.translatePath('special://profile/playlists/mixed') + '/Channel_' + str(i + 1) + '.xsp')),"")
+            elif os.path.exists(xbmc.translatePath('special://profile/playlists/music') + '/Channel_' + str(i + 1) + '.xsp'):
+                channelNum = channelNum + 1
+                ADDON_SETTINGS.setSetting("Channel_" + str(channelNum) + "_type", "0")
+                ADDON_SETTINGS.setSetting("Channel_" + str(channelNum) + "_time", "0")
+                ADDON_SETTINGS.setSetting("Channel_" + str(channelNum) + "_1", xbmc.translatePath('special://profile/playlists/music/') + 'Channel_' + str(i + 1) + '.xsp')
+                ADDON_SETTINGS.setSetting("Channel_" + str(channelNum) + "_2", str(""))
+                ADDON_SETTINGS.setSetting("Channel_" + str(channelNum) + "_3", self.cleanString(self.getSmartPlaylistName(xbmc.translatePath('special://profile/playlists/music') + '/Channel_' + str(i + 1) + '.xsp')))
+                ADDON_SETTINGS.setSetting("Channel_" + str(channelNum) + "_4", str(""))
+                ADDON_SETTINGS.setSetting("Channel_" + str(channelNum) + "_5", str(""))
+                ADDON_SETTINGS.setSetting("Channel_" + str(channelNum) + "_6", str(""))
+                ADDON_SETTINGS.setSetting("Channel_" + str(channelNum) + "_7", str(""))
+                ADDON_SETTINGS.setSetting("Channel_" + str(channelNum) + "_8", str(""))
+                ADDON_SETTINGS.setSetting("Channel_" + str(channelNum) + "_9", str(""))
+                ADDON_SETTINGS.setSetting("Channel_" + str(channelNum) + "_playlist", xbmc.translatePath('special://profile/playlists/music/') + 'Channel_' + str(i + 1) + '.xsp')
+                self.updateDialog(progressIndicator,"Auto Tune","Found " + str(self.getSmartPlaylistName(xbmc.translatePath('special://profile/playlists/music') + '/Channel_' + str(i + 1) + '.xsp')),"")
             #i = i + 1
         
         progressIndicator = 10
@@ -664,6 +700,10 @@ class ChannelList:
                 else:
                     self.log("Cannot find Folder")                    
             elif chtype == 8: # Music
+                if len(chsetting1) > 0:
+                    maxChannels = i + 1
+          
+            elif chtype == 9: # Live
                 if len(chsetting1) > 0:
                     maxChannels = i + 1
           
@@ -1022,7 +1062,7 @@ class ChannelList:
         try:
             xml = open(fle, "r")
         except:
-            self.log("getSmartPlaylisyName: Unable to open the smart playlist " + fle, xbmc.LOGERROR)
+            self.log("getSmartPlaylistName: Unable to open the smart playlist " + fle, xbmc.LOGERROR)
             return ''
 
         try:
@@ -1112,6 +1152,9 @@ class ChannelList:
                 elif chtype == 8: # music
                     self.makeChannelListFromPlaylist(channel, location)
                 
+                elif chtype == 9: # live
+                    self.makeChannelListFromFeed(channel, location)
+
                 # reset channel changed to false
                 ADDON_SETTINGS.setSetting("Channel_" + str(channel) + "_changed","false")
                     
@@ -1155,6 +1198,9 @@ class ChannelList:
 
             elif chtype == 8: # music
                 self.makeChannelListFromPlaylist(channel, location)
+
+            elif chtype == 9: # live
+                self.makeChannelListFromFeed(channel, location)
 
             # reset channel changed to false
             ADDON_SETTINGS.setSetting("Channel_" + str(channel) + "_changed","false")
@@ -1272,6 +1318,131 @@ class ChannelList:
                 fileList = self.insertFiles(channel, fileList, commercials, bumpers, trailers, commercialInterval, bumperInterval, trailerInterval, commercialNum, bumperNum, trailerNum)
 
         # write m3u
+        self.writeFileList(channel, fileList, location)
+
+
+    def getFeedURL(self, chname):
+        self.log("getFeedURL")
+        feedURL = ''
+        feedsFile = os.path.join(FEED_LOC,"feeds.dat") 
+        feeds = open(feedsFile, "r") 
+
+        for feed in feeds: 
+            self.log("feed = " + str(feed))
+            data = feed.split('|') 
+            feedName = data[0] 
+            self.log("chname = " + str(data[0]))
+            if feedName == chname:
+                feedURL = data[1]
+                self.log("feedURL = " + str(feedURL))
+
+        feeds.close()
+        
+        return feedURL
+     
+
+    def getFeedXML(self, url):
+        feed_request = urllib2.Request(url)
+        #feed_request.add_header('User-Agent', 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.8.1.14) Gecko/20080404 Firefox/2.0.0.14')
+        feed_opener = urllib2.build_opener()
+        feedXML = feed_opener.open(feed_request).read()
+        self.log("feedXML = " + str(feedXML))
+        return feedXML
+
+
+    def makeChannelListFromFeed(self, channel, location):
+        fileList = []
+        chname = ADDON_SETTINGS.getSetting("Channel_" + str(channel) + "_3")
+        # get feed URL
+        feedURL = self.getFeedURL(chname)
+        # get feed XML
+        feedXML = self.getFeedXML(feedURL)
+        # parse feed XML
+        feed = parseString(feedXML)
+        # get channel items in feed
+        itemNode = feed.getElementsByTagName("item")
+        # loop through items and build tmplist
+        for item in itemNode:
+            titleNode = item.getElementsByTagName("title") #element
+            self.log("titleNode found at " + str(titleNode))
+            contentNode = item.getElementsByTagName("media:content") #url attribute
+            self.log("contentNode found at " + str(contentNode))
+            durationNode = item.getElementsByTagName("mvn:duration") #element
+            self.log("durationNode found at " + str(durationNode))
+            airdateNode = item.getElementsByTagName("mvn:airDate") #element
+            self.log("airdateNode found at " + str(airdateNode))
+            descriptionNode = item.getElementsByTagName("media:description") #element
+            self.log("descriptionNode found at " + str(descriptionNode))
+            showNode = item.getElementsByTagName("mvn:fnc_show") #element
+            self.log("showNode found at " + str(showNode))
+            # get data
+            if len(titleNode) > 0:
+                try:
+                    title = titleNode[0].firstChild.data
+                except:
+                    title = ''
+            else:
+                title = ''
+
+            if len(contentNode) > 0:
+                try:
+                    url = contentNode[0].getAttribute('url')
+                except:
+                    url = ''
+            else:
+                url = ''
+
+            if len(durationNode) > 0:
+                try:
+                    dur = durationNode[0].firstChild.data
+                except:
+                    dur = ''
+            else:
+                dur = ''
+
+            if len(airdateNode) > 0:
+                try:
+                    airdate = airdateNode[0].firstChild.data
+                except:
+                    airdate = ''
+            else:
+                airdate = ''
+
+            if len(descriptionNode) > 0:
+                try:
+                    description = descriptionNode[0].firstChild.data
+                except:
+                    description = ''
+            else:
+                description = ''
+
+            if len(showNode) > 0:
+                try:
+                    showtitle = showNode[0].firstChild.data
+                except:
+                    showtitle = ''
+            else:
+                showtitle = ''
+
+            self.log("title = " + str(title))
+            self.log("url = " + str(url))
+            self.log("dur = " + str(dur))
+            self.log("airdate = " + str(airdate))
+            self.log("description = " + str(description))
+            self.log("showtitle = " + str(showtitle))
+
+            # add file to file list
+            # will see if this works or whether
+            # we will need to add shows direct to playlist and 
+            # call play
+            if len(url) > 0:
+                tmpstr = str(dur) + ',' + title + "//" + showtitle + "//" + description
+                tmpstr = tmpstr[:600]
+                tmpstr = tmpstr.replace("\\n", " ").replace("\n", " ").replace("\r", " ").replace("\\r", " ").replace("\\\"", "\"")
+                tmpstr = tmpstr + '\n' + url.replace("\\\\", "\\")
+                fileList.append(tmpstr)
+
+        # valid channel
         self.writeFileList(channel, fileList, location)
 
 
@@ -1471,6 +1642,7 @@ class ChannelList:
 
 
     def makeChannelListFromPlaylist(self, channel, location):
+        self.log("makeChannelListFromPlaylist")
         limit = REAL_SETTINGS.getSetting("limit")
         if limit == "0":
             limit = 50
@@ -1492,6 +1664,7 @@ class ChannelList:
         if len(fle) == 0:
             self.log("makeChannelListFromPlaylist: Unable to locate the playlist for channel " + str(channelName), xbmc.LOGERROR)
             return False
+
         try:
             xml = open(fle, "r")
         except:
@@ -1542,17 +1715,22 @@ class ChannelList:
             fileList = self.buildFileListFromPlaylist(channel, fle)
             if randomize:
                 random.shuffle(fileList)                    
-
+        
+        self.log("fileList length " + str(len(fileList)))
         # check if fileList contains files
         if len(fileList) == 0:
+            self.log("Check if Off Air mode enabled")
             offair = REAL_SETTINGS.getSetting("offair")
             offairFile = REAL_SETTINGS.getSetting("offairfile")            
             if offair and len(offairFile) > 0:
+                self.log("Off Air mode enabled")
                 self.line3 = "Channel is Off Air"
                 self.updateDialog(self.progress,self.line1,self.line2,self.line3)
+                self.log("Checking if off air file has valid duration")
                 dur = self.videoParser.getVideoLength(offairFile)
                 # insert offair video file
                 if dur > 0:
+                    self.log("Inserting Off Air file")
                     numFiles = int((60 * 60 * 24)/dur)
                     for i in range(numFiles):
                         tmpstr = str(dur) + ','
@@ -1563,10 +1741,11 @@ class ChannelList:
                         tmpstr = tmpstr.replace("\\n", " ").replace("\n", " ").replace("\r", " ").replace("\\r", " ").replace("\\\"", "\"")
                         tmpstr = tmpstr + '\n' + offairFile.replace("\\\\", "\\")
                         fileList.append(tmpstr)                
+                else:
+                    self.log("Unable to get off air file duration")                    
                 ADDON_SETTINGS.setSetting("Channel_" + str(channel) + "_offair","1")
                 ADDON_SETTINGS.setSetting("Channel_" + str(channel) + "_2",MODE_SERIAL)
         else:
-
             ADDON_SETTINGS.setSetting("Channel_" + str(channel) + "_offair","0")
 
             if pltype == "movies":
@@ -1598,18 +1777,26 @@ class ChannelList:
                     if (commercials == "true" and os.path.exists(commercialsfolder)):
                         commercialInterval = self.getCommercialInterval(channel, len(fileList))
                         commercialNum = self.getCommercialNum(channel, len(fileList))
+                    else:
+                        commercialInterval = 0
+                        commercialNum = 0                        
                     if (bumpers == "true" and os.path.exists(bumpersfolder)):
                         bumperInterval = self.getBumperInterval(channel, len(fileList))
                         bumperNum = self.getBumperNum(channel, len(fileList))
+                    else:
+                        bumperInterval = 0
+                        bumperNum = 0                        
                     trailerInterval = 0
                     trailerNum = 0
                     trailers = False
                     bumpers = False
                     commercials = False
+                    
                     if not int(bumperInterval) == 0:
                         bumpers = True
                     if not int(commercialInterval) == 0:
                         commercials = True
+                    
                     fileList = self.insertFiles(channel, fileList, commercials, bumpers, trailers, commercialInterval, bumperInterval, trailerInterval, commercialNum, bumperNum, trailerNum)
 
         # valid channel
@@ -2046,15 +2233,16 @@ class ChannelList:
 
 
     def buildFileListFromPlaylist(self, channel, playlist, media_type="video", recursive="TRUE"):        
+        self.log("buildFileListFromPlaylist")
         fileList = []
         chname = ADDON_SETTINGS.getSetting("Channel_" + str(channel) + "_3")
         self.line2 = "Creating Channel " + str(channel) + " - " + str(chname)
         self.line3 = "Querying XBMC Database"
         self.updateDialog(self.progress,self.line1,self.line2,self.line3)
         self.videoParser = VideoParser()
-        json_query = '{"jsonrpc": "2.0", "method": "Files.GetDirectory", "params": {"directory": "%s", "media": "%s", "recursive": "%s", "fields":["duration","tagline","showtitle","album","artist","plot"]}, "id": 1}' % ( self.escapeDirJSON( playlist ), media_type, recursive )
+        json_query = '{"jsonrpc": "2.0", "method": "Files.GetDirectory", "params": {"directory": "%s", "media": "%s", "fields":["duration","tagline","showtitle","album","artist","plot"]}, "id": 1}' % ( self.escapeDirJSON( playlist ), media_type )
         json_folder_detail = xbmc.executeJSONRPC(json_query)
-#        self.log(json_folder_detail)
+        self.log(json_folder_detail)
         file_detail = re.compile( "{(.*?)}", re.DOTALL ).findall(json_folder_detail)
         fileNum = 1
         for f in file_detail:
@@ -2097,13 +2285,13 @@ class ChannelList:
                             else:
                                 theplot = plot.group(1)
                             # This is a TV show
-                            if showtitle != None:
+                            if showtitle != None and len(showtitle.group(1)) > 0:
                                 tmpstr += showtitle.group(1) + "//" + title.group(1) + "//" + theplot
                             else:
                                 tmpstr += title.group(1) + "//"
                                 album = re.search('"album" *: *"(.*?)"', f)
                                 # This is a movie
-                                if album == None:
+                                if album == None or len(album.group(1)) == 0:
                                     tagline = re.search('"tagline" *: *"(.*?)"', f)
                                     if tagline != None:
                                         tmpstr += tagline.group(1)

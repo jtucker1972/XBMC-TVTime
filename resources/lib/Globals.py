@@ -29,7 +29,7 @@ ADDON_SETTINGS = Settings.Settings()
 REAL_SETTINGS = xbmcaddon.Addon(id=ADDON_ID)
 ADDON_INFO = REAL_SETTINGS.getAddonInfo('path')
 
-VERSION = "1.0.2"
+VERSION = "2.0.0"
 
 TIMEOUT = 15 * 1000
 TOTAL_FILL_CHANNELS = 20
@@ -52,6 +52,7 @@ GEN_CHAN_LOC = os.path.join(CHANNELS_LOC, 'generated') + '/'
 PRESTAGE_LOC = os.path.join(CHANNELS_LOC, 'prestaged') + '/'
 TEMP_LOC = os.path.join(CHANNELS_LOC, 'temp') + '/'
 META_LOC = os.path.join(CHANNELS_LOC, 'meta') + '/'
+FEED_LOC = os.path.join(CHANNELS_LOC, 'feeds') + '/'
 
 TIME_BAR = 'pstvTimeBar.png'
 BUTTON_FOCUS = 'pstvButtonFocus.png'

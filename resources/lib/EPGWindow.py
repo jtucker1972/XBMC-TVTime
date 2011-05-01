@@ -20,6 +20,7 @@ import xbmc, xbmcgui, xbmcaddon
 import subprocess, os
 import time, threading
 import datetime
+import Globals
 
 from Playlist import Playlist
 from Globals import *
@@ -319,6 +320,8 @@ class EPGWindow(xbmcgui.WindowXMLDialog):
         elif action == ACTION_MOVE_RIGHT:
             self.GoRight()
         elif action == ACTION_STOP:
+            self.log('EPG STOP')
+            Globals.userExit = 1                    
             self.closeEPG()
         elif action == ACTION_SELECT_ITEM:
             lastaction = time.time() - self.lastActionTime

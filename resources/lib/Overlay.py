@@ -119,6 +119,10 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
         # setup directories
         self.createDirectories()
 
+        # Copy feeds xml if it doesn't exist yet.
+        #if not os.path.exists(FEED_LOC,"feeds.xml"):
+        #    self.copyFeedsXML()
+        
         self.myEPG = EPGWindow("script.pseudotv.EPG.xml", ADDON_INFO, "default")
         self.myEPG.MyOverlayWindow = self
         # Don't allow any actions during initialization
@@ -250,6 +254,10 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
         self.prestageThread = PrestageThread()
         self.prestageThread.start()
 
+        # shutdown check timer
+        self.shutdownTimer = threading.Timer(1, self.checkShutdownFlag)
+        self.shutdownTimer.start()
+
         try:
             if self.forceReset == False:
                 self.currentChannel = self.fixChannel(int(REAL_SETTINGS.getSetting("CurrentChannel")))
@@ -277,15 +285,36 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
 
         self.log('Overlay: onInit return')
 
-    
+
+    def checkShutdownFlag(self):
+        self.log("checkShutdownFlag")
+        if Globals.userExit == 1:
+            self.log("Calling TV Time Exit")
+            self.shutdownTimer.cancel()
+            self.end()
+        else:
+            self.log("Resetting checkShutdownFlag")
+            self.shutdownTimer = threading.Timer(1, self.checkShutdownFlag)
+            self.shutdownTimer.start()
+        
+
     def createDirectories(self):
+        self.log("createDirectories")
         # setup directories
         self.createDirectory(CHANNELS_LOC)
         self.createDirectory(GEN_CHAN_LOC)
         self.createDirectory(PRESTAGE_LOC)
         self.createDirectory(TEMP_LOC)
         self.createDirectory(META_LOC)
+        self.createDirectory(FEED_LOC)
+        
 
+    def copyFeedsXML(self):
+        self.log("createFeedXML")
+        if not os.path.exists(FEED_LOC,"feeds.xml"):
+            # copy default feeds.xml file
+            self.channelList.copyFiles(os.path.join(os.path.join(ADDON_INFO, 'resources', 'feeds')), FEED_LOC)
+            
 
     def buildMetaFiles(self):
         self.dlg = xbmcgui.DialogProgress()
@@ -637,7 +666,6 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
         if self.channelLabelTimer.isAlive():
             self.channelLabelTimer.cancel()
             self.channelLabelTimer = threading.Timer(5.0, self.hideChannelLabel)
-            self.log("thread list: showChannelLabel - " + str(threading.enumerate()))
 
         tmp = self.inputChannel
         #self.hideChannelLabel()
@@ -747,9 +775,9 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
             if lastaction < 2:
                 # unless it is an exit action
                 if action == ACTION_STOP:
-                    Globals.userExit = 1
+                    Globals.userExit = 1                    
                     self.log("Exiting because user pressed exit")
-                    self.end()
+                    #self.end()
                 else:
                     self.log('Not allowing actions')
                     action = ACTION_INVALID
@@ -763,7 +791,14 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
                     if self.inputChannel != self.currentChannel:
                         self.setChannel(self.inputChannel)
 
+                    if int(ADDON_SETTINGS.getSetting("Channel_" + str(self.inputChannel) + "_type")) == 8:
+                        self.background.setVisible(False)
+                        xbmc.executebuiltin("ActivateWindow(12006)")
+                    else:
+                        self.background.setVisible(False)
+
                     self.inputChannel = -1
+
                 else:
                     # Otherwise, show the EPG
                     if self.sleepTimeValue > 0:
@@ -817,7 +852,7 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
                     if dlg.yesno("Exit?", "Are you sure you want to exit TV Time?"):
                         Globals.userExit = 1
                         self.log("Exiting because user selected yes")
-                        self.end()
+                        #self.end()
                     else:
                         self.sleepTimer = threading.Timer(self.sleepTimeValue, self.sleepAction)
                         self.startSleepTimer()
@@ -845,7 +880,7 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
             elif action == ACTION_STOP:
                 Globals.userExit = 1
                 self.log("Exiting because user pressed exit")
-                self.end()
+                #self.end()
 
             self.log("onAction: releasing semaphore")
             self.actionSemaphore.release()
@@ -877,6 +912,7 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
 
     # cleanup and end
     def end(self):
+        self.log("end")
         self.background.setVisible(True)
         # add a control to block script from calling end twice
         # unsure why it does sometimes
@@ -893,6 +929,19 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
             self.dlg.create("TV Time", "Exiting")
             self.dlg.update(0,"Exiting TV Time","Please wait...")
             time.sleep(3)
+
+            # shutdown check timer
+            self.shutdownTimer = threading.Timer(1, self.checkShutdownFlag)
+            self.shutdownTimer.start()
+
+            try:
+                if self.shutdownTimer.isAlive():
+                    self.log("shutdownTimer is still alive")
+                    self.shutdownTimer.cancel()
+                    self.log("channelLabelTimer is cancelled")
+            except:
+                self.log("error cancelling shutdownTimer")
+                pass
 
             try:
                 if self.channelLabelTimer.isAlive():
@@ -973,7 +1022,7 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
                                 
             self.background.setVisible(False)
 
-            # need to distinguish between user eXit and auto shutdown
+            # need to distinguish between user eXits and auto shutdown
             if int(Globals.userExit) == 0 and REAL_SETTINGS.getSetting("autoChannelResetShutdown") == "true":
                 #print xbmc.executeJSONRPC('{"jsonrpc": "2.0", "method": "JSONRPC.Introspect", "id": 1}')
                 #XBMC.Quit
@@ -983,6 +1032,9 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
                 #self.close()
             else:
                 self.close()
+
+            self.log("Threads - " + str(threading.enumerate()))
+
         else:
             self.log("TVTime already triggered end")
 

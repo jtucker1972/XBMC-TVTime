@@ -328,9 +328,15 @@ class PrestageThread(threading.Thread):
                     if (commercials == "true" and os.path.exists(commercialsfolder)):
                         commercialInterval = self.getCommercialInterval(channel, len(fileList))
                         commercialNum = self.getCommercialNum(channel, len(fileList))
+                    else:
+                        commercialInterval = 0
+                        commercialNum = 0                        
                     if (bumpers == "true" and os.path.exists(bumpersfolder)):
                         bumperInterval = self.getBumperInterval(channel, len(fileList))
                         bumperNum = self.getBumperNum(channel, len(fileList))
+                    else:
+                        bumperInterval = 0
+                        bumperNum = 0                        
                     trailerInterval = 0
                     trailerNum = 0 
                     trailers = False
@@ -1156,7 +1162,18 @@ class PrestageThread(threading.Thread):
             fileList = []
             chname = ADDON_SETTINGS.getSetting("Channel_" + str(channel) + "_3")
             self.videoParser = VideoParser()
-            json_query = '{"jsonrpc": "2.0", "method": "Files.GetDirectory", "params": {"directory": "%s", "media": "%s", "recursive": "%s", "fields":["duration","tagline","showtitle","album","artist","plot"]}, "id": 1}' % ( self.escapeDirJSON( playlist ), media_type, recursive )
+            """
+            XBMC-VERSION:
+              0 - Dharma (Version 10)
+              1 - Pre-Eden (Nightlies)
+            """
+            if REAL_SETTINGS.getSetting("XBMC-VERSION") == "0":
+                # Dharma version
+                json_query = '{"jsonrpc": "2.0", "method": "Files.GetDirectory", "params": {"directory": "%s", "media": "%s", "recursive": "%s", "fields":["duration","tagline","showtitle","album","artist","plot"]}, "id": 1}' % ( self.escapeDirJSON( playlist ), media_type, recursive )
+            else:
+                # Pre-Eden - Version
+                json_query = '{"jsonrpc": "2.0", "method": "Files.GetDirectory", "params": {"directory": "%s", "media": "%s", "fields":["duration","tagline","showtitle","album","artist","plot"]}, "id": 1}' % ( self.escapeDirJSON( playlist ), media_type )
+
             json_folder_detail = xbmc.executeJSONRPC(json_query)
             file_detail = re.compile( "{(.*?)}", re.DOTALL ).findall(json_folder_detail)
             fileNum = 1

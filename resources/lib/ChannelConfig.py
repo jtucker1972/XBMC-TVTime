@@ -91,18 +91,21 @@ class ChannelConfig(xbmcgui.WindowXMLDialog):
         self.dlg.create("TV Time", "Preparing Channel Wizard")
         self.dlg.update(0, "Preparing Channel Wizard")
         self.chnlst = ChannelList()
-        self.dlg.update(20, "Preparing Channel Wizard", "Loading TV Settings")
+        self.dlg.update(10, "Preparing Channel Wizard", "Loading TV Settings")
         self.chnlst.fillTVInfo()
         self.networkList = self.chnlst.networkList
         self.studioList = self.chnlst.studioList
         self.showGenreList = self.chnlst.showGenreList
-        self.dlg.update(40, "Preparing Channel Wizard", "Loading Movie Settings")
+        self.dlg.update(20, "Preparing Channel Wizard", "Loading Movie Settings")
         self.chnlst.fillMovieInfo()
         self.movieGenreList = self.chnlst.movieGenreList
-        self.dlg.update(60, "Preparing Channel Wizard", "Loading Music Settings")
+        self.dlg.update(40, "Preparing Channel Wizard", "Loading Music Settings")
         self.chnlst.fillMusicInfo()
-        self.musicGenreList = self.chnlst.musicGenreList
-        self.dlg.update(70, "Preparing Channel Wizard", "Loading Mixed Genre Settings")
+        self.musicGenreList = self.chnlst.musicGenreList        
+        #self.dlg.update(60, "Preparing Channel Wizard", "Loading Live Feed Settings")
+        #self.chnlst.fillFeedInfo()
+        #self.feedList = self.chnlst.feedList
+        self.dlg.update(80, "Preparing Channel Wizard", "Loading Mixed Genre Settings")
         self.mixedGenreList = self.chnlst.makeMixedList(self.showGenreList, self.movieGenreList)
 
         for i in range(len(self.chnlst.showList)):
@@ -110,14 +113,6 @@ class ChannelConfig(xbmcgui.WindowXMLDialog):
 
         self.mixedGenreList.sort(key=lambda x: x.lower())
 
-        # hard coded for testing only
-        # add fillLiveInfo to ChannelList file later
-        self.liveList = []
-        self.liveList.append('FoxNewsLive')
-        self.liveList.append('LiveChannel2')
-        self.liveList.append('LiveChannel3')
-        #
-        
         self.resolutionList = []
         self.resolutionList.append('All')
         self.resolutionList.append('SD Only')
@@ -183,16 +178,7 @@ class ChannelConfig(xbmcgui.WindowXMLDialog):
     def saveSettings(self):
         chantype = 9999
         chan = str(self.channel)
-        set1 = ''
-        set2 = ''
-        set3 = ''
-        set4 = ''
-        set5 = ''
-        set6 = ''
-        set7 = ''
-        set8 = ''
-        set9 = ''
-
+        
         try:
             chantype = int(ADDON_SETTINGS.getSetting("Channel_" + chan + "_type"))
         except:
@@ -208,15 +194,28 @@ class ChannelConfig(xbmcgui.WindowXMLDialog):
         setting8 = "Channel_" + chan + "_8"
         setting9 = "Channel_" + chan + "_9"
         settingtime = "Channel_" + chan + "_time"
+        playlist = "Channel_" + chan + "_playlist"
+        totalDuration = "Channel_" + chan + "_totalDuration"
         
         if chantype == 0:
             ADDON_SETTINGS.setSetting(setting1, self.getControl(130).getLabel2())
-            ADDON_SETTINGS.setSetting(setting3, self.getControl(130).getLabel())
+            ADDON_SETTINGS.setSetting(setting2, '')
+            ADDON_SETTINGS.setSetting(setting3, self.chnlst.cleanString(self.getControl(130).getLabel()))
+            ADDON_SETTINGS.setSetting(setting4, '')
+            ADDON_SETTINGS.setSetting(setting5, '')
+            ADDON_SETTINGS.setSetting(setting6, '')
+            ADDON_SETTINGS.setSetting(setting7, '')
+            ADDON_SETTINGS.setSetting(setting8, '')
+            ADDON_SETTINGS.setSetting(setting9, '')
             ADDON_SETTINGS.setSetting(settingtime, 0)
         elif chantype == 1:
             ADDON_SETTINGS.setSetting(settingtime, 0)
-            ADDON_SETTINGS.setSetting(setting1, self.getControl(142).getLabel())
-            ADDON_SETTINGS.setSetting(setting3, self.getControl(142).getLabel())
+            ADDON_SETTINGS.setSetting(setting1, self.chnlst.cleanString(self.getControl(142).getLabel()))
+            if self.getControl(349).isSelected():
+                ADDON_SETTINGS.setSetting(setting2, str(MODE_SERIAL))
+            else:
+                ADDON_SETTINGS.setSetting(setting2, 0)                
+            ADDON_SETTINGS.setSetting(setting3, self.chnlst.cleanString(self.getControl(142).getLabel()))
             if self.getControl(346).isSelected():
                 ADDON_SETTINGS.setSetting(setting4, str(MODE_UNWATCHED))
             else:
@@ -226,27 +225,35 @@ class ChannelConfig(xbmcgui.WindowXMLDialog):
             else:
                 ADDON_SETTINGS.setSetting(setting5, 0)
             ADDON_SETTINGS.setSetting(setting6, self.getControl(343).getLabel())
+            ADDON_SETTINGS.setSetting(setting7, '')
+            ADDON_SETTINGS.setSetting(setting8, '')
             if self.getControl(348).isSelected():
                 ADDON_SETTINGS.setSetting(setting9, str(MODE_RANDOM_FILELISTS))
             else:
                 ADDON_SETTINGS.setSetting(setting9, 0)
-            if self.getControl(349).isSelected():
-                ADDON_SETTINGS.setSetting(setting2, str(MODE_SERIAL))
-            else:
-                ADDON_SETTINGS.setSetting(setting2, 0)                
+            ADDON_SETTINGS.setSetting(playlist, '')
+            ADDON_SETTINGS.setSetting(totalDuration, '')
         elif chantype == 2:
             ADDON_SETTINGS.setSetting(settingtime, 0)
-            ADDON_SETTINGS.setSetting(setting1, self.getControl(152).getLabel())
-            ADDON_SETTINGS.setSetting(setting3, self.getControl(152).getLabel())
+            ADDON_SETTINGS.setSetting(setting1, self.chnlst.cleanString(self.getControl(152).getLabel()))
+            ADDON_SETTINGS.setSetting(setting2, '')
+            ADDON_SETTINGS.setSetting(setting3, self.chnlst.cleanString(self.getControl(152).getLabel()))
             if self.getControl(356).isSelected():
                 ADDON_SETTINGS.setSetting(setting4, str(MODE_UNWATCHED))
             else:
                 ADDON_SETTINGS.setSetting(setting4, 0)
+            ADDON_SETTINGS.setSetting(setting5, '')
             ADDON_SETTINGS.setSetting(setting6, self.getControl(353).getLabel())
+            ADDON_SETTINGS.setSetting(setting7, '')
+            ADDON_SETTINGS.setSetting(setting8, '')
+            ADDON_SETTINGS.setSetting(setting9, '')
+            ADDON_SETTINGS.setSetting(playlist, '')
+            ADDON_SETTINGS.setSetting(totalDuration, '')
         elif chantype == 3:
             ADDON_SETTINGS.setSetting(settingtime, 0)
-            ADDON_SETTINGS.setSetting(setting1, self.getControl(162).getLabel())
-            ADDON_SETTINGS.setSetting(setting3, self.getControl(162).getLabel())
+            ADDON_SETTINGS.setSetting(setting1, self.chnlst.cleanString(self.getControl(162).getLabel()))
+            ADDON_SETTINGS.setSetting(setting2, '')
+            ADDON_SETTINGS.setSetting(setting3, self.chnlst.cleanString(self.getControl(162).getLabel()))
             if self.getControl(366).isSelected():
                 ADDON_SETTINGS.setSetting(setting4, str(MODE_UNWATCHED))
             else:
@@ -256,19 +263,32 @@ class ChannelConfig(xbmcgui.WindowXMLDialog):
             else:
                 ADDON_SETTINGS.setSetting(setting5, 0)
             ADDON_SETTINGS.setSetting(setting6, self.getControl(363).getLabel())
+            ADDON_SETTINGS.setSetting(setting7, '')
+            ADDON_SETTINGS.setSetting(setting8, '')
+            ADDON_SETTINGS.setSetting(setting9, '')
+            ADDON_SETTINGS.setSetting(playlist, '')
+            ADDON_SETTINGS.setSetting(totalDuration, '')
         elif chantype == 4:
             ADDON_SETTINGS.setSetting(settingtime, 0)
-            ADDON_SETTINGS.setSetting(setting1, self.getControl(172).getLabel())
-            ADDON_SETTINGS.setSetting(setting3, self.getControl(172).getLabel())
+            ADDON_SETTINGS.setSetting(setting1, self.chnlst.cleanString(self.getControl(172).getLabel()))
+            ADDON_SETTINGS.setSetting(setting2, '')
+            ADDON_SETTINGS.setSetting(setting3, self.chnlst.cleanString(self.getControl(172).getLabel()))
             if self.getControl(376).isSelected():
                 ADDON_SETTINGS.setSetting(setting4, str(MODE_UNWATCHED))
             else:
                 ADDON_SETTINGS.setSetting(setting4, 0)
             ADDON_SETTINGS.setSetting(setting5, self.getControl(373).getLabel())
+            ADDON_SETTINGS.setSetting(setting6, '')
+            ADDON_SETTINGS.setSetting(setting7, '')
+            ADDON_SETTINGS.setSetting(setting8, '')
+            ADDON_SETTINGS.setSetting(setting9, '')
+            ADDON_SETTINGS.setSetting(playlist, '')
+            ADDON_SETTINGS.setSetting(totalDuration, '')
         elif chantype == 5:
             ADDON_SETTINGS.setSetting(settingtime, 0)
-            ADDON_SETTINGS.setSetting(setting1, self.getControl(182).getLabel())
-            ADDON_SETTINGS.setSetting(setting3, self.getControl(182).getLabel())
+            ADDON_SETTINGS.setSetting(setting1, self.chnlst.cleanString(self.getControl(182).getLabel()))
+            ADDON_SETTINGS.setSetting(setting2, '')
+            ADDON_SETTINGS.setSetting(setting3, self.chnlst.cleanString(self.getControl(182).getLabel()))
             if self.getControl(386).isSelected():
                 ADDON_SETTINGS.setSetting(setting4, str(MODE_UNWATCHED))
             else:
@@ -278,12 +298,17 @@ class ChannelConfig(xbmcgui.WindowXMLDialog):
             else:
                 ADDON_SETTINGS.setSetting(setting5, 0)
             ADDON_SETTINGS.setSetting(setting6, self.getControl(383).getLabel())
+            ADDON_SETTINGS.setSetting(setting7, '')
+            ADDON_SETTINGS.setSetting(setting8, '')
+            ADDON_SETTINGS.setSetting(setting9, '')
+            ADDON_SETTINGS.setSetting(playlist, '')
+            ADDON_SETTINGS.setSetting(totalDuration, '')
         elif chantype == 6:
             ADDON_SETTINGS.setSetting(settingtime, 0)
-            ADDON_SETTINGS.setSetting(setting1, self.getControl(192).getLabel())
+            ADDON_SETTINGS.setSetting(setting1, self.chnlst.cleanString(self.getControl(192).getLabel()))
             if self.getControl(194).isSelected():
                 ADDON_SETTINGS.setSetting(setting2, str(MODE_SERIAL))
-            ADDON_SETTINGS.setSetting(setting3, self.getControl(192).getLabel())
+            ADDON_SETTINGS.setSetting(setting3, self.chnlst.cleanString(self.getControl(192).getLabel()))
             if self.getControl(396).isSelected():
                 ADDON_SETTINGS.setSetting(setting4, str(MODE_UNWATCHED))
             else:
@@ -293,14 +318,50 @@ class ChannelConfig(xbmcgui.WindowXMLDialog):
             else:
                 ADDON_SETTINGS.setSetting(setting5, 0)
             ADDON_SETTINGS.setSetting(setting6, self.getControl(393).getLabel())
+            ADDON_SETTINGS.setSetting(setting7, '')
+            ADDON_SETTINGS.setSetting(setting8, '')
+            ADDON_SETTINGS.setSetting(setting9, '')
+            ADDON_SETTINGS.setSetting(playlist, '')
+            ADDON_SETTINGS.setSetting(totalDuration, '')
         if chantype == 7: # folder
             ADDON_SETTINGS.setSetting(settingtime, 0)
-            ADDON_SETTINGS.setSetting(setting1, self.getControl(200).getLabel2())
-            ADDON_SETTINGS.setSetting(setting3, self.getControl(200).getLabel())
+            ADDON_SETTINGS.setSetting(setting1, self.chnlst.cleanString(self.getControl(200).getLabel2()))
+            ADDON_SETTINGS.setSetting(setting2, '')
+            ADDON_SETTINGS.setSetting(setting3, self.chnlst.cleanString(self.getControl(200).getLabel()))
+            ADDON_SETTINGS.setSetting(setting4, '')
+            ADDON_SETTINGS.setSetting(setting5, '')
+            ADDON_SETTINGS.setSetting(setting6, '')
+            ADDON_SETTINGS.setSetting(setting7, '')
+            ADDON_SETTINGS.setSetting(setting8, '')
+            ADDON_SETTINGS.setSetting(setting9, '')
+            ADDON_SETTINGS.setSetting(playlist, '')
+            ADDON_SETTINGS.setSetting(totalDuration, '')
         if chantype == 8: # music
             ADDON_SETTINGS.setSetting(settingtime, 0)
-            ADDON_SETTINGS.setSetting(setting1, self.getControl(212).getLabel())
-            ADDON_SETTINGS.setSetting(setting3, self.getControl(212).getLabel())
+            ADDON_SETTINGS.setSetting(setting1, self.chnlst.cleanString(self.getControl(212).getLabel()))
+            ADDON_SETTINGS.setSetting(setting2, '')
+            ADDON_SETTINGS.setSetting(setting3, self.chnlst.cleanString(self.getControl(212).getLabel()))
+            ADDON_SETTINGS.setSetting(setting4, '')
+            ADDON_SETTINGS.setSetting(setting5, '')
+            ADDON_SETTINGS.setSetting(setting6, '')
+            ADDON_SETTINGS.setSetting(setting7, '')
+            ADDON_SETTINGS.setSetting(setting8, '')
+            ADDON_SETTINGS.setSetting(setting9, '')
+            ADDON_SETTINGS.setSetting(playlist, '')
+            ADDON_SETTINGS.setSetting(totalDuration, '')
+        #if chantype == 9: # live
+        #    ADDON_SETTINGS.setSetting(settingtime, 0)
+        #    ADDON_SETTINGS.setSetting(setting1, self.chnlst.cleanString(self.getControl(222).getLabel()))
+        #    ADDON_SETTINGS.setSetting(setting2, '')
+        #    ADDON_SETTINGS.setSetting(setting3, self.chnlst.cleanString(self.getControl(222).getLabel()))
+        #    ADDON_SETTINGS.setSetting(setting4, '')
+        #    ADDON_SETTINGS.setSetting(setting5, '')
+        #    ADDON_SETTINGS.setSetting(setting6, '')
+        #    ADDON_SETTINGS.setSetting(setting7, '')
+        #    ADDON_SETTINGS.setSetting(setting8, '')
+        #    ADDON_SETTINGS.setSetting(setting9, '')
+        #    ADDON_SETTINGS.setSetting(playlist, '')
+        #    ADDON_SETTINGS.setSetting(totalDuration, '')
         elif chantype == 9999:
             ADDON_SETTINGS.setSetting(settingtime, 0)
             ADDON_SETTINGS.setSetting(setting1, '')
@@ -312,6 +373,8 @@ class ChannelConfig(xbmcgui.WindowXMLDialog):
             ADDON_SETTINGS.setSetting(setting7, '')
             ADDON_SETTINGS.setSetting(setting8, '')
             ADDON_SETTINGS.setSetting(setting9, '')
+            ADDON_SETTINGS.setSetting(playlist, '')
+            ADDON_SETTINGS.setSetting(totalDuration, '')
 
         # Check to see if the user changed anything
         set1 = ''
@@ -445,6 +508,10 @@ class ChannelConfig(xbmcgui.WindowXMLDialog):
             self.changeListData(self.musicGenreList, 212, -1)
         elif controlId == 211:
             self.changeListData(self.musicGenreList, 212, 1)
+        #elif controlId == 220: # Live Channel
+        #    self.changeListData(self.feedList, 222, -1)
+        #elif controlId == 221:
+        #    self.changeListData(self.feedList, 222, 1)
         elif controlId == 344:
             self.changeListData(self.resolutionList, 343, -1)
         elif controlId == 345:
@@ -663,6 +730,8 @@ class ChannelConfig(xbmcgui.WindowXMLDialog):
             self.getControl(200).setLabel(fldname, label2=chansetting1)
         elif chantype == 8: # music
             self.getControl(212).setLabel(self.findItemInList(self.musicGenreList, chansetting1))
+        #elif chantype == 9: # live
+        #    self.getControl(222).setLabel(self.findItemInList(self.feedList, chansetting1))
 
         self.log("fillInDetails return")
 
@@ -699,6 +768,8 @@ class ChannelConfig(xbmcgui.WindowXMLDialog):
             return "Folder"
         elif chantype == 8:
             return "Music Genre"
+        #elif chantype == 9:
+        #    return "Live"
         elif chantype == 9999:
             return "None"
 
@@ -742,6 +813,8 @@ class ChannelConfig(xbmcgui.WindowXMLDialog):
                 newlabel = chansetting3
             elif chantype == 8:
                 newlabel = chansetting3
+            #elif chantype == 9:
+            #    newlabel = chansetting3
 
             theitem.setLabel2(newlabel)
 
@@ -774,6 +847,9 @@ class ChannelConfig(xbmcgui.WindowXMLDialog):
             elif chtype == 8:
                 if len(chsetting1) > 0:
                     maxChannels = i + 1
+            #elif chtype == 9:
+            #    if len(chsetting1) > 0:
+            #        maxChannels = i + 1
           
         REAL_SETTINGS.setSetting('maxChannels', str(maxChannels)) 
 
