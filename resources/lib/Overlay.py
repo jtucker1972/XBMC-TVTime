@@ -155,6 +155,14 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
             autoFindTVGenres = REAL_SETTINGS.getSetting("autoFindTVGenres")        
             autoFindTVShows = REAL_SETTINGS.getSetting("autoFindTVShows")
             autoFindMusicGenres = REAL_SETTINGS.getSetting("autoFindMusicGenres")        
+
+            self.log("autoFindMixGenres " + str(autoFindMixGenres)) 
+            self.log("autoFindMovieGenres " + str(autoFindMovieGenres)) 
+            self.log("autoFindNetworks " + str(autoFindNetworks)) 
+            self.log("autoFindStudios " + str(autoFindStudios)) 
+            self.log("autoFindTVGenres " + str(autoFindTVGenres)) 
+            self.log("autoFindTVShows " + str(autoFindTVShows)) 
+            self.log("autoFindMusicGenres " + str(autoFindMusicGenres)) 
             
             if (autoFindMixGenres == "true" or       
                 autoFindMovieGenres == "true" or        

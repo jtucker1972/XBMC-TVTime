@@ -510,7 +510,10 @@ class ChannelList:
             #i = i + 1
         
         progressIndicator = 10
+        self.log("autoFindNetworks " + str(REAL_SETTINGS.getSetting("autoFindNetworks")))
+        self.log("autoFindTVGenres " + str(REAL_SETTINGS.getSetting("autoFindTVGenres")))
         if (REAL_SETTINGS.getSetting("autoFindNetworks") == "true" or REAL_SETTINGS.getSetting("autoFindTVGenres") == "true"):
+            self.log("Searching for TV Channels")
             self.updateDialog(progressIndicator,"Auto Tune","Searching for TV Channels","")
             if len(self.networkList) == 0:
                 self.fillTVInfo()
@@ -518,6 +521,7 @@ class ChannelList:
         # need to add check for auto find network channels
         progressIndicator = 20
         if REAL_SETTINGS.getSetting("autoFindNetworks") == "true":
+            self.log("Adding TV Networks")
             self.updateDialog(progressIndicator,"Auto Tune","Adding TV Networks","")
             for i in range(len(self.networkList)):
                 channelNum = channelNum + 1
@@ -538,6 +542,7 @@ class ChannelList:
 
         progressIndicator = 30
         if REAL_SETTINGS.getSetting("autoFindTVGenres") == "true":
+            self.log("Adding TV Genres")
             self.updateDialog(progressIndicator,"Auto Tune","Adding TV Genres","")
             for i in range(len(self.showGenreList)):
                 channelNum = channelNum + 1
@@ -557,12 +562,15 @@ class ChannelList:
                 self.updateDialog(progressIndicator,"Auto Tune","Adding TV Genres",str(self.showGenreList[i]) + " TV")
         
         progressIndicator = 40
+        self.log("autoFindStudios " + str(REAL_SETTINGS.getSetting("autoFindStudios")))
+        self.log("autoFindMovieGenres " + str(REAL_SETTINGS.getSetting("autoFindMovieGenres")))
         if (REAL_SETTINGS.getSetting("autoFindStudios") == "true" or REAL_SETTINGS.getSetting("autoFindMovieGenres") == "true"):
             self.updateDialog(progressIndicator,"Auto Tune","Searching for Movie Channels","")
             self.fillMovieInfo()
 
         progressIndicator = 50
         if REAL_SETTINGS.getSetting("autoFindStudios") == "true":
+            self.log("Adding Movie Studios")
             self.updateDialog(progressIndicator,"Auto Tune","Adding Movie Studios","")
             for i in range(len(self.studioList)):
                 channelNum = channelNum + 1
@@ -584,6 +592,7 @@ class ChannelList:
 
         progressIndicator = 60
         if REAL_SETTINGS.getSetting("autoFindMovieGenres") == "true":
+            self.log("Adding Movie Genres")
             self.updateDialog(progressIndicator,"Auto Tune","Adding Movie Genres","")
             for i in range(len(self.movieGenreList)):
                 channelNum = channelNum + 1
@@ -604,12 +613,14 @@ class ChannelList:
                 self.updateDialog(progressIndicator,"Auto Tune","Adding Movie Genres","Found " + str(self.movieGenreList[i]) + " Movies")
 
         progressIndicator = 65
+        self.log("autoFindMixGenres " + str(REAL_SETTINGS.getSetting("autoFindMixGenres")))
         if REAL_SETTINGS.getSetting("autoFindMixGenres") == "true":
             self.updateDialog(progressIndicator,"Auto Tune","Searching for Mixed Channels","")
             self.fillMixedGenreInfo()
         
         progressIndicator = 70
         if REAL_SETTINGS.getSetting("autoFindMixGenres") == "true":
+            self.log("Adding Mixed Genres")
             self.updateDialog(progressIndicator,"Auto Tune","Adding Mixed Genres","")
             for i in range(len(self.mixedGenreList)):
                 channelNum = channelNum + 1
@@ -629,6 +640,7 @@ class ChannelList:
                 self.updateDialog(progressIndicator,"Auto Tune","Adding Mixed Genres",str(self.mixedGenreList[i]) + " Mix")
 
         progressIndicator = 80
+        self.log("autoFindMusicGenres " + str(REAL_SETTINGS.getSetting("autoFindMusicGenres")))
         if REAL_SETTINGS.getSetting("autoFindMusicGenres") == "true":
             self.updateDialog(progressIndicator,"Auto Tune","Searching for Music Channels","")
             if len(self.musicGenreList) == 0:
@@ -636,6 +648,7 @@ class ChannelList:
 
         progressIndicator = 90
         if REAL_SETTINGS.getSetting("autoFindMusicGenres") == "true":
+            self.log("Adding Music Genres")
             self.updateDialog(progressIndicator,"Auto Tune","Adding Music Genres","")
             for i in range(len(self.musicGenreList)):
                 channelNum = channelNum + 1
@@ -695,7 +708,7 @@ class ChannelList:
                 if len(chsetting1) > 0:
                     maxChannels = i + 1
             elif chtype == 7: # Folder Based
-                if os.path.exists(chsetting1):
+                if os.path.exists(self.uncleanString(chsetting1)):
                     maxChannels = i + 1
                 else:
                     self.log("Cannot find Folder")                    
@@ -944,21 +957,35 @@ class ChannelList:
             limit = 100
         elif limit == "2":
             limit = 250
+
+        try:
+            setting = int(serial)
+            order = 'random'
+            if setting & MODE_ORDERAIRDATE > 0:
+                order = 'airdate'
+        except:
+            pass
+
         pltype = pltype.lower()
         genre = genre.lower()
         flename = xbmc.makeLegalFilename(GEN_CHAN_LOC + pltype + '_' + genre + '.xsp')
+
         try:
             fle = open(flename, "w")
         except:
             self.Error('Unable to open the cache file ' + flename, xbmc.LOGERROR)
             return ''
+
         self.writeXSPHeader(fle, pltype, channelname, 'all')
         genre = self.cleanString(genre)
         fle.write('    <rule field="genre" operator="is">' + genre + '</rule>\n')
+
         if unwatched:
             fle.write('    <rule field="playcount" operator="is">0</rule>\n')
+
         if (pltype=="episodes" and nospecials):
             fle.write('    <rule field="season" operator="isnot">0</rule>\n')
+
         if (pltype=="movies" and len(resolution)>0):
             if resolution == 'SD Only':
                 fle.write('    <rule field="videoresolution" operator="lessthan">720</rule>\n')
@@ -966,10 +993,10 @@ class ChannelList:
                 fle.write('    <rule field="videoresolution" operator="greaterthan">719</rule>\n')
             if resolution == '1080p Only':
                 fle.write('    <rule field="videoresolution" operator="greaterthan">1079</rule>\n')
-        if (pltype=="episodes" and serial):
-            self.writeXSPFooter(fle, limit, "airdate")
-        else:
-            self.writeXSPFooter(fle, limit, "random")
+
+        if (pltype=="episodes"):
+            self.writeXSPFooter(fle, limit, order)
+
         fle.close()
         
         return flename
@@ -1055,6 +1082,15 @@ class ChannelList:
         return newstr
 
 
+    def uncleanString(self, string):
+        self.log("uncleanString")
+        newstr = string
+        newstr = newstr.replace('&amp;', '&')
+        newstr = newstr.replace('&gt;', '>')
+        newstr = newstr.replace('&lt;', '<')
+        return newstr
+
+
     # Open the smart playlist and read the name out of it...this is the channel name
     def getSmartPlaylistName(self, fle):
         fle = xbmc.translatePath(fle)
@@ -1137,6 +1173,8 @@ class ChannelList:
                 chtype = int(ADDON_SETTINGS.getSetting("Channel_" + str(channel) + "_type"))
                 chname = ADDON_SETTINGS.getSetting("Channel_" + str(channel) + "_3")
 
+                self.log("Building Channel " + str(channel) + " - " + str(chname) + " File List")
+
                 self.progress = self.progress + (100/maxChannels)
                 self.line2 = "Creating Channel " + str(channel) + " - " + str(chname)
                 self.line3 = ""
@@ -1217,6 +1255,7 @@ class ChannelList:
     
     def makeChannelListFromFolder(self, channel, folder, location):
         self.log("makeChannelListFromFolder")
+        folder = self.uncleanString(folder)
         fileList = []
         self.videoParser = VideoParser()
         # set the types of files we want in our folder based file list
@@ -1224,7 +1263,7 @@ class ChannelList:
         # get limit
         limit = REAL_SETTINGS.getSetting("limit")
 
-        chname = ADDON_SETTINGS.getSetting("Channel_" + str(channel) + "_3")
+        chname = self.uncleanString(ADDON_SETTINGS.getSetting("Channel_" + str(channel) + "_3"))
         ADDON_SETTINGS.setSetting("Channel_" + str(channel) + "_time", "0")
 
         self.line2 = "Creating Channel " + str(channel) + " - " + str(chname)
@@ -1233,15 +1272,18 @@ class ChannelList:
         
         # make sure folder exist
         if os.path.exists(folder):
+            self.log("Scanning Folder")
             self.line3 = "Scanning Folder"
             self.updateDialog(self.progress,self.line1,self.line2,self.line3)
             # get a list of filenames from the folder
             fnlist = []
             for root, subFolders, files in os.walk(folder):            
                 for file in files:
+                    self.log("file found " + str(file) + " checking for valid extension")
                     # get file extension
                     basename, extension = os.path.splitext(file)
                     if extension in flext:
+                        self.log("adding file " + str(file))
                         fnlist.append(os.path.join(root,file))
 
             # randomize list
@@ -1269,7 +1311,9 @@ class ChannelList:
                     tmpstr = tmpstr.replace("\\n", " ").replace("\\r", " ").replace("\\\"", "\"")
                     tmpstr = tmpstr + '\n' + fpath.replace("\\\\", "\\")
                     fileList.append(tmpstr)
-
+        else:
+            self.log("Unable to open folder " + str(folder))
+            
         # trailers bumpers commercials
         # check if fileList contains files
         if len(fileList) == 0:
@@ -1580,14 +1624,21 @@ class ChannelList:
 
 
     def getThePlot(self, fpath):
+        self.log("getThePlot")
         dbase = os.path.dirname(fpath)
         fbase = os.path.basename(fpath)
-        fname = os.path.splitext(fbase)[0]                
+        fname = os.path.splitext(fbase)[0]
+
+        self.log("dbase " + str(dbase))
+        self.log("fbase " + str(fbase))
+        self.log("fname " + str(fname))
+        
         theplot = ""
         # Media Center Master
         # location = ./metadata
         # filename format = <filename>.xml
         fle = os.path.join(dbase, "metadata", fname + ".xml")
+        self.log("fle " + str(fle))
         if os.path.isfile(fle):
             # Read the video meta data
             """
@@ -1610,12 +1661,15 @@ class ChannelList:
                 xml.close()
        
             if overviewNode:
-                theplot = overviewNode[0].firstChild.nodeValue
-
+                try:
+                    theplot = overviewNode[0].firstChild.nodeValue
+                except:
+                    theplot = ""
         # XBMC
         # location = same as video files
         # filename format = <filename.nfo
         fle = os.path.join(dbase, fname + ".nfo")
+        self.log("fle " + str(fle))
         if os.path.isfile(fle):
             """
             <episodedetails>
@@ -1637,7 +1691,10 @@ class ChannelList:
                 xml.close()
        
             if plotNode:
-                theplot = plotNode[0].firstChild.nodeValue
+                try:
+                    theplot = plotNode[0].firstChild.nodeValue
+                except:
+                    theplot = ""
 
         theplot = theplot.encode("utf-8")
         return theplot
@@ -2246,7 +2303,7 @@ class ChannelList:
         self.videoParser = VideoParser()
         json_query = '{"jsonrpc": "2.0", "method": "Files.GetDirectory", "params": {"directory": "%s", "media": "%s", "fields":["duration","tagline","showtitle","album","artist","plot"]}, "id": 1}' % ( self.escapeDirJSON( playlist ), media_type )
         json_folder_detail = xbmc.executeJSONRPC(json_query)
-        self.log(json_folder_detail)
+#        self.log(json_folder_detail)
         file_detail = re.compile( "{(.*?)}", re.DOTALL ).findall(json_folder_detail)
         fileNum = 1
         for f in file_detail:
