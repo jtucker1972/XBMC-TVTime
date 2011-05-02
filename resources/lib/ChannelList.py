@@ -1279,7 +1279,6 @@ class ChannelList:
             fnlist = []
             for root, subFolders, files in os.walk(folder):            
                 for file in files:
-                    self.log("file found " + str(file) + " checking for valid extension")
                     # get file extension
                     basename, extension = os.path.splitext(file)
                     if extension in flext:
