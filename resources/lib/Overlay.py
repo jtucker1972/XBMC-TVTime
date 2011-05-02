@@ -438,7 +438,7 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
         self.forceReset = REAL_SETTINGS.getSetting('ForceChannelReset') == "true"
         self.channelLogos = xbmc.translatePath(REAL_SETTINGS.getSetting('ChannelLogoFolder'))
         if self.channelLogos == "":
-            self.channelLogos = "special://home/addons/script.tvtime/resources/images/"
+            self.channelLogos = xbmc.translatePath("special://home/addons/script.tvtime/resources/images/")
 
         if os.path.exists(self.channelLogos) == False:
             self.channelLogos = IMAGES_LOC

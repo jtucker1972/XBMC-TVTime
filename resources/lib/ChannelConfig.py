@@ -56,8 +56,8 @@ class ChannelConfig(xbmcgui.WindowXMLDialog):
     def onInit(self):
         self.log("onInit")
 
-        self.getControl(105).setVisible(False) # Channel Listing Control Group
-        self.getControl(106).setVisible(False) # Channel Settings Control Group
+        #self.getControl(105).setVisible(False) # Channel Listing Control Group
+        #self.getControl(106).setVisible(False) # Channel Settings Control Group
 
         for i in range(NUMBER_CHANNEL_TYPES):
             self.getControl(120 + i).setVisible(False) # Channel Settings
@@ -252,7 +252,10 @@ class ChannelConfig(xbmcgui.WindowXMLDialog):
         elif chantype == 3:
             ADDON_SETTINGS.setSetting(settingtime, 0)
             ADDON_SETTINGS.setSetting(setting1, self.chnlst.cleanString(self.getControl(162).getLabel()))
-            ADDON_SETTINGS.setSetting(setting2, '')
+            if self.getControl(369).isSelected():
+                ADDON_SETTINGS.setSetting(setting2, str(MODE_SERIAL))
+            else:
+                ADDON_SETTINGS.setSetting(setting2, 0)                
             ADDON_SETTINGS.setSetting(setting3, self.chnlst.cleanString(self.getControl(162).getLabel()))
             if self.getControl(366).isSelected():
                 ADDON_SETTINGS.setSetting(setting4, str(MODE_UNWATCHED))
@@ -697,6 +700,8 @@ class ChannelConfig(xbmcgui.WindowXMLDialog):
         elif chantype == 3:
             self.getControl(162).setLabel(self.findItemInList(self.showGenreList, chansetting1))
             self.getControl(363).setLabel(self.findItemInList(self.resolutionList, chansetting6))
+            if chansetting2 <> "":
+                self.getControl(369).setSelected(int(chansetting2) == int(MODE_SERIAL))
             if chansetting4 <> "":
                 self.getControl(366).setSelected(int(chansetting4) == int(MODE_UNWATCHED))
             if chansetting5 <> "":
