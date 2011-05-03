@@ -40,6 +40,8 @@ from Globals import *
 from Channel import Channel
 from VideoParser import VideoParser
 
+sys.setdefaultencoding('utf-8')
+
 NUMBER_CHANNEL_TYPES = Globals.NUMBER_CHANNEL_TYPES
 
 class ChannelList:
@@ -733,6 +735,7 @@ class ChannelList:
 #####################################################
 
     def resetPlaylist(self, channel):
+        self.log("resetPlaylist")
         # need to get the channel settings
         try:
             chtype = int(ADDON_SETTINGS.getSetting('Channel_' + str(channel) + '_type'))
@@ -747,6 +750,7 @@ class ChannelList:
             chsetting9 = ADDON_SETTINGS.getSetting('Channel_' + str(channel) + '_9') # randomize tv shows
             # save playlist filename as a setting so we can reference it later
             playlist = self.makeTypePlaylist(chtype, chsetting1, chsetting2, chsetting3, chsetting4, chsetting5, chsetting6, chsetting7, chsetting8, chsetting9)
+            self.log("playlist " + str(playlist))
             if chtype == 0:
                 # set playlist to selected playlist 
                 ADDON_SETTINGS.setSetting('Channel_' + str(channel) + '_playlist', chsetting1)
@@ -761,6 +765,8 @@ class ChannelList:
 
             
     def makeTypePlaylist(self, chtype, setting1, setting2, setting3, setting4, setting5, setting6, setting7, setting8, setting9):
+        self.log("makeTypePlaylist")
+        self.log("type " + str(chtype))
         if int(chtype) == 1:
             return self.createNetworkPlaylist(setting1, setting2, setting3, setting4, setting5, setting6, setting9)
         elif int(chtype) == 2:
@@ -781,6 +787,7 @@ class ChannelList:
 
 
     def createNetworkPlaylist(self, network, serial, channelname, unwatched, nospecials, resolution, randomtvshow):
+        self.log("createNetworkPlaylist")
         if len(self.networkList) == 0:
             self.fillTVInfo()        
         limit = REAL_SETTINGS.getSetting("limit")
@@ -806,18 +813,18 @@ class ChannelList:
         # create a seperate playlist for each tvshow
         for i in range(len(self.showList)):
             if self.showList[i][1].lower() == network.lower():
-                network = network.lower()
+                network = self.cleanString(network.lower())
                 theshow = self.cleanString(self.showList[i][0].lower())
+
                 flename = xbmc.makeLegalFilename(GEN_CHAN_LOC + 'network_' + network + '_' + theshow + '.xsp')
 
                 # create playlist for network tvshow
                 try:
                     fle = open(flename, "w")
                 except:
-                    self.Error('createNetworkPlaylist: Unable to open the cache file ' + flename, xbmc.LOGERROR)
+                    self.Error('createNetworkPlaylist: Unable to open the cache file ', xbmc.LOGERROR)
                     return ''
 
-                network = network.lower()
                 self.writeXSPHeader(fle, "episodes", 'network_' + network + '_' + theshow, 'all')
                 fle.write('    <rule field="tvshow" operator="is">' + theshow + '</rule>\n')
                 
@@ -871,6 +878,8 @@ class ChannelList:
 
 
     def createShowPlaylist(self, show, serial, channelname, unwatched, nospecials, resolution):
+        #  need to fix to work with extended character sets
+        self.log("createShowPlaylist")
         limit = REAL_SETTINGS.getSetting("limit")
         if limit == "0":
             limit = 50
@@ -891,7 +900,7 @@ class ChannelList:
             pass
 
         flename = xbmc.makeLegalFilename(GEN_CHAN_LOC + 'show_' + show + '_' + order + '.xsp')
-
+        self.log("flename " + str(flename))
         try:
             fle = open(flename, "w")
         except:
@@ -921,6 +930,7 @@ class ChannelList:
 
 
     def createGenreMixedPlaylist(self, genre, serial, channelname, unwatched, nospecials, resolution):
+        self.log("createGenreMixedPlaylist")
         limit = REAL_SETTINGS.getSetting("limit")
         if limit == "0":
             limit = 50
@@ -950,6 +960,7 @@ class ChannelList:
 
 
     def createGenrePlaylist(self, pltype, chtype, genre, serial, channelname, unwatched, nospecials, resolution):
+        self.log("createGenrePlaylist")
         limit = REAL_SETTINGS.getSetting("limit")
         if limit == "0":
             limit = 50
@@ -1003,6 +1014,7 @@ class ChannelList:
 
 
     def createStudioPlaylist(self, studio, serial, channelname, unwatched, nospecials, resolution):
+        self.log("createStudioPlaylist")
         limit = REAL_SETTINGS.getSetting("limit")
         if limit == "0":
             limit = 50
@@ -1041,6 +1053,7 @@ class ChannelList:
 
 
     def createMusicPlaylist(self, genre, channelname):
+        self.log("createMusicPlaylist")
         limit = 1000
         pltype = "songs"
         genre = genre.lower()
@@ -1279,6 +1292,7 @@ class ChannelList:
             fnlist = []
             for root, subFolders, files in os.walk(folder):            
                 for file in files:
+                    self.log("file found " + str(file) + " checking for valid extension")
                     # get file extension
                     basename, extension = os.path.splitext(file)
                     if extension in flext:
@@ -1549,8 +1563,6 @@ class ChannelList:
         if title == "":        
             title = os.path.split(fpath)[(len(os.path.split(fpath))-1)]
         
-        title = title.encode("utf-8")
-
         return title
 
 
@@ -1616,8 +1628,6 @@ class ChannelList:
         # if all else fails, get showtitle from folder
         if showtitle == "":
             showtitle = os.path.split(fpath)[(len(os.path.split(fpath))-2)]
-
-        showtitle = showtitle.encode("utf-8")
 
         return showtitle
 
@@ -1695,7 +1705,6 @@ class ChannelList:
                 except:
                     theplot = ""
 
-        theplot = theplot.encode("utf-8")
         return theplot
 
 
@@ -1745,17 +1754,22 @@ class ChannelList:
             pass
         
         if limitNode:
-            plimit = limitNode[0].firstChild.nodeValue
-            # force a max limit of 250 for performance reason
-            if int(plimit) < limit:
-                limit = plimit
-        
+            try:
+                plimit = limitNode[0].firstChild.nodeValue
+                # force a max limit of 250 for performance reason
+                if int(plimit) < limit:
+                    limit = plimit
+            except:
+                pass
+                
         randomize = False
         if orderNode:
             if orderNode[0].childNodes[0].nodeValue.lower() == 'random':
                 randomize = True
 
         xml.close()
+
+        self.log("pltype " + str("pltype"))
 
         if pltype == 'mixed':
             self.level = 0 # used in buildMixedFileListFromPlaylist to keep track of limit for different playlists
@@ -1769,7 +1783,6 @@ class ChannelList:
                 if randomize:
                     random.shuffle(fileList)                    
         else:
-            #self.channelType = pltype
             fileList = self.buildFileListFromPlaylist(channel, fle)
             if randomize:
                 random.shuffle(fileList)                    
@@ -2292,8 +2305,10 @@ class ChannelList:
         return self.fileLists
 
 
-    def buildFileListFromPlaylist(self, channel, playlist, media_type="video", recursive="TRUE"):        
+    def buildFileListFromPlaylist(self, channel, playlist, media_type="video", recursive="TRUE"): 
+        # not working with extended playlist
         self.log("buildFileListFromPlaylist")
+        self.log("playlist " + str(playlist))
         fileList = []
         chname = ADDON_SETTINGS.getSetting("Channel_" + str(channel) + "_3")
         self.line2 = "Creating Channel " + str(channel) + " - " + str(chname)
