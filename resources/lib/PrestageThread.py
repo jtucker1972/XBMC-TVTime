@@ -322,8 +322,10 @@ class PrestageThread(threading.Thread):
             else:
                 commercials = REAL_SETTINGS.getSetting("commercials")
                 commercialsfolder = REAL_SETTINGS.getSetting("commercialsfolder")
+                commercialInterval = 0            
                 bumpers = REAL_SETTINGS.getSetting("bumpers")
                 bumpersfolder = REAL_SETTINGS.getSetting("bumpersfolder")
+                bumperInterval = 0
                 if (commercials == "true" and os.path.exists(commercialsfolder)) or (bumpers == "true" and os.path.exists(bumpersfolder)):
                     if (commercials == "true" and os.path.exists(commercialsfolder)):
                         commercialInterval = self.getCommercialInterval(channel, len(fileList))
@@ -582,6 +584,7 @@ class PrestageThread(threading.Thread):
             if len(fle) == 0:
                 self.log("makeChannelListFromPlaylist: Unable to locate the playlist for channel " + str(channelName), xbmc.LOGERROR)
                 return False
+                
             try:
                 xml = open(fle, "r")
             except:
@@ -608,6 +611,8 @@ class PrestageThread(threading.Thread):
                 # force a max limit of 250 for performance reason
                 if int(plimit) < limit:
                     limit = plimit
+            except:
+                pass
 
             randomize = False
             if orderNode:
@@ -672,24 +677,34 @@ class PrestageThread(threading.Thread):
                 else:
                     commercials = REAL_SETTINGS.getSetting("commercials")
                     commercialsfolder = REAL_SETTINGS.getSetting("commercialsfolder")
+                    commercialInterval = 0
                     bumpers = REAL_SETTINGS.getSetting("bumpers")
                     bumpersfolder = REAL_SETTINGS.getSetting("bumpersfolder")
+                    bumperInterval = 0
                     if (commercials == "true" and os.path.exists(commercialsfolder)) or (bumpers == "true" and os.path.exists(bumpersfolder)):
                         if (commercials == "true" and os.path.exists(commercialsfolder)):
                             commercialInterval = self.getCommercialInterval(channel, len(fileList))
                             commercialNum = self.getCommercialNum(channel, len(fileList))
+                        else:
+                            commercialInterval = 0
+                            commercialNum = 0                        
                         if (bumpers == "true" and os.path.exists(bumpersfolder)):
                             bumperInterval = self.getBumperInterval(channel, len(fileList))
                             bumperNum = self.getBumperNum(channel, len(fileList))
+                        else:
+                            bumperInterval = 0
+                            bumperNum = 0                        
                         trailerInterval = 0
                         trailerNum = 0
                         trailers = False
                         bumpers = False
                         commercials = False
+                        
                         if not bumperInterval == 0:
                             bumpers = True
                         if not commercialInterval == 0:
                             commercials = True
+                        
                         fileList = self.insertFiles(channel, fileList, commercials, bumpers, trailers, commercialInterval, bumperInterval, trailerInterval, commercialNum, bumperNum, trailerNum)
 
             # valid channel
