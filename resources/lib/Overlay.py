@@ -1137,6 +1137,8 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
             time.sleep(3)
             self.dlg.close()
                                 
+            ADDON_SETTINGS.setSetting('LastExitTime', str(int(time.time())))
+
             self.background.setVisible(False)
 
             # need to distinguish between user eXits and auto shutdown

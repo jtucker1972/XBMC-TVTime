@@ -144,13 +144,24 @@ class ChannelList:
                     self.channels[channel - 1].isValid = True
                     self.channels[channel - 1].fileName = CHANNELS_LOC + 'channel_' + str(channel) + '.m3u'
                     returnval = True
-
             except:
                 pass
         
         if chtype == 6 or chtype == 1: # TV Show or Network Channel
             if chsetting2 == str(MODE_SERIAL):
                 self.channels[channel - 1].mode = MODE_SERIAL
+        
+        """
+        New code from PseudoTV
+        # if there is no start mode in the channel mode flags, set it to the default
+        if self.channels[channel - 1].mode & MODE_STARTMODES == 0:
+            if self.startMode == 0:
+                self.channels[channel - 1].mode = MODE_RESUME
+            elif self.startMode == 1:
+                self.channels[channel - 1].mode = MODE_REALTIME
+            elif self.startMode == 2:
+                self.channels[channel - 1].mode = MODE_RANDOM        
+        """
 
         if self.channels[channel - 1].mode & MODE_ALWAYSPAUSE > 0:
             self.channels[channel - 1].isPaused = True
