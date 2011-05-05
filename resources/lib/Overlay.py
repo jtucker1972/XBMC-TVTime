@@ -48,7 +48,6 @@ class MyPlayer(xbmc.Player):
     def log(self, msg, level = xbmc.LOGDEBUG):
         log('Player: ' + msg, level)
 
-        
     def onPlayBackStopped(self):
         if self.stopped == False:
             self.log('Playback stopped')
@@ -69,7 +68,7 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
         # initialize all variables
         self.channels = []
         self.Player = MyPlayer()
-        self.Player.overlay = self
+        self.Player.overlay = self            
         self.inputChannel = -1
         self.channelLabel = []
         self.lastActionTime = 0
@@ -136,43 +135,17 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
             ):
             self.buildMetaFiles()
 
-        # add a step to check settings2.xml exists
-        if not os.path.exists(xbmc.translatePath('special://profile/addon_data/' + ADDON_ID + '/settings2.xml')):
-            # if not, load presets
-            self.log("Overlay: onInit - settings2.xml not found")
+        if (REAL_SETTINGS.getSetting("autoFindMixGenres") == "true" or       
+            REAL_SETTINGS.getSetting("autoFindMovieGenres") == "true" or        
+            REAL_SETTINGS.getSetting("autoFindNetworks") == "true" or        
+            REAL_SETTINGS.getSetting("autoFindStudios") == "true" or   
+            REAL_SETTINGS.getSetting("autoFindTVGenres") == "true" or       
+            REAL_SETTINGS.getSetting("autoFindTVShows") == "true" or
+            REAL_SETTINGS.getSetting("autoFindMusicGenres") == "true" or
+            REAL_SETTINGS.getSetting("autoFindLive") == "true"):
+            Globals.resetSettings2 = 1
+            Globals.resetPrestage = 1
             self.channelList.autoTune()
-        else:
-            self.log("Overlay: onInit - settings2.xml found")
-
-            autoFindMixGenres = REAL_SETTINGS.getSetting("autoFindMixGenres")        
-            autoFindMovieGenres = REAL_SETTINGS.getSetting("autoFindMovieGenres")        
-            autoFindNetworks = REAL_SETTINGS.getSetting("autoFindNetworks")        
-            autoFindStudios = REAL_SETTINGS.getSetting("autoFindStudios")        
-            autoFindTVGenres = REAL_SETTINGS.getSetting("autoFindTVGenres")        
-            autoFindTVShows = REAL_SETTINGS.getSetting("autoFindTVShows")
-            autoFindMusicGenres = REAL_SETTINGS.getSetting("autoFindMusicGenres")        
-            autoFindLive = REAL_SETTINGS.getSetting("autoFindLive")        
-
-            self.log("autoFindMixGenres " + str(autoFindMixGenres)) 
-            self.log("autoFindMovieGenres " + str(autoFindMovieGenres)) 
-            self.log("autoFindNetworks " + str(autoFindNetworks)) 
-            self.log("autoFindStudios " + str(autoFindStudios)) 
-            self.log("autoFindTVGenres " + str(autoFindTVGenres)) 
-            self.log("autoFindTVShows " + str(autoFindTVShows)) 
-            self.log("autoFindMusicGenres " + str(autoFindMusicGenres)) 
-            self.log("autoFindLive " + str(autoFindLive)) 
-            
-            if (autoFindMixGenres == "true" or       
-                autoFindMovieGenres == "true" or        
-                autoFindNetworks == "true" or        
-                autoFindStudios == "true" or   
-                autoFindTVGenres == "true" or       
-                autoFindTVShows == "true" or
-                autoFindMusicGenres == "true" or
-                autoFindLive == "true"):
-                Globals.resetSettings2 = 1
-                Globals.resetPrestage = 1
-                self.channelList.autoTune()
 
         # There are two types of force resets
         # 1. Force All Channels Reset (Addon Setting)
@@ -242,8 +215,34 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
         self.myEPG.channelLogos = self.channelLogos
         self.maxChannels = len(self.channels)
         if self.maxChannels == 0:
-            self.Error('Overlay: Unable to find any channels. Please configure the addon.')
-            return
+            #self.Error('Unable to find any channels. \nPlease go to the Addon Settings to configure TV Time.')
+            #return
+            dlg = xbmcgui.Dialog()
+
+            if dlg.yesno("No Channels Configured", "Would you like TV Time to Auto Tune TV Network\nchannels the next time it loads?"):
+                REAL_SETTINGS.setSetting("autoFindNetworks","true")
+
+            if dlg.yesno("No Channels Configured", "Would you like TV Time to Auto Tune TV Genre\nchannels the next time it loads?"):
+                REAL_SETTINGS.setSetting("autoFindTVGenre","true")
+
+            if dlg.yesno("No Channels Configured", "Would you like TV Time to Auto Tune Movie Studio\nchannels the next time it loads?"):
+                REAL_SETTINGS.setSetting("autoFindStudios","true")
+
+            if dlg.yesno("No Channels Configured", "Would you like TV Time to Auto Tune Movie Genre\nchannels the next time it loads?"):
+                REAL_SETTINGS.setSetting("autoFindMovieGenres","true")
+
+            if dlg.yesno("No Channels Configured", "Would you like TV Time to Auto Tune Mix Genre\nchannels the next time it loads?"):
+                REAL_SETTINGS.setSetting("autoFindMixGenres","true")
+
+            if dlg.yesno("No Channels Configured", "Would you like TV Time to Auto Tune Music Genre\nchannels the next time it loads?"):
+                REAL_SETTINGS.setSetting("autoFindMusicGenres","true")
+
+            if dlg.yesno("No Channels Configured", "Would you like TV Time to Auto Tune Live\nchannels the next time it loads?"):
+                REAL_SETTINGS.setSetting("autoFindLive","true")
+                self.end()
+                return
+
+            del dlg
 
         found = False
 
@@ -254,7 +253,7 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
                 break
 
         if found == False:
-            self.Error("Overlay: No valid channel data found")
+            self.Error('Unable to find any channels. \nPlease go to the Addon Settings to configure TV Time.')
             return
 
         if self.sleepTimeValue > 0:
@@ -438,12 +437,9 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
         self.log('readConfig')
         # Sleep setting is in 30 minute incriments...so multiply by 30, and then 60 (min to sec)
         self.sleepTimeValue = int(REAL_SETTINGS.getSetting('AutoOff')) * 1800
-        self.log('readConfig: Auto off is ' + str(self.sleepTimeValue))
         self.infoOnChange = REAL_SETTINGS.getSetting("InfoOnChange") == "true"
-        self.log('readConfig: Show info label on channel change is ' + str(self.infoOnChange))
         self.showChannelBug = REAL_SETTINGS.getSetting("ShowChannelBug") == "true"
-        self.log('readConfig: Show channel bug - ' + str(self.showChannelBug))
-        self.forceReset = REAL_SETTINGS.getSetting('ForceChannelReset') == "true"
+        self.forceReset = REAL_SETTINGS.getSetting('ForceChannelReset')
         self.channelLogos = xbmc.translatePath(REAL_SETTINGS.getSetting('ChannelLogoFolder'))
         if self.channelLogos == "":
             self.channelLogos = xbmc.translatePath("special://home/addons/script.tvtime/resources/images/")
@@ -451,13 +447,67 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
         if os.path.exists(self.channelLogos) == False:
             self.channelLogos = IMAGES_LOC
 
-        self.log('readConfig: Channel logo folder - ' + self.channelLogos)
         self.startupTime = time.time()
 
         try:
             self.lastResetTime = int(REAL_SETTINGS.getSetting("LastResetTime"))
         except:
             self.lastResetTime = 0
+
+        # Output all settings for debugging purposes
+        self.log('#####################################################################################')
+        self.log('General Settings:')
+        self.log('  Auto off is - ' + str(REAL_SETTINGS.getSetting('AutoOff')))
+        self.log('  Show info label on channel change is - ' + str(REAL_SETTINGS.getSetting('InfoOnChange') == "true")) 
+        self.log('  Force Channel Reset is - ' + str(REAL_SETTINGS.getSetting('ForceChannelReset')))
+        self.log('  Auto Channel Reset is - ' + str(REAL_SETTINGS.getSetting('autoChannelReset') == "true"))
+        self.log('  Auto Channel Reset Setting is - ' + str(REAL_SETTINGS.getSetting('autoChannelResetSetting')))
+        self.log('  Auto Channel Reset Interval is - ' + str(REAL_SETTINGS.getSetting('autoChannelResetInterval')))
+        self.log('  Auto Channel Reset Time is - ' + str(REAL_SETTINGS.getSetting('autoChannelResetTime')))
+        self.log('  Auto Channel Reset Shutdown is - ' + str(REAL_SETTINGS.getSetting('autoChannelResetShutdown') == "true"))
+        self.log('  Show Channel Bug is - ' + str(REAL_SETTINGS.getSetting('ShowChannelBug') == "true"))
+        self.log('  Channel Logo Folder is - ' + str(REAL_SETTINGS.getSetting('ChannelLogoFolder')))   
+        self.log('  Version is - ' + str(REAL_SETTINGS.getSetting('Version')))
+
+        self.log('Channels Settings:')
+        self.log('  Auto Find TV Network Channels is - ' + str(REAL_SETTINGS.getSetting('autoFindNetworks')))
+        self.log('  Auto Find Movie Studios Channels is - ' + str(REAL_SETTINGS.getSetting('autoFindStudios')))
+        self.log('  Auto Find TV Genres Channels is - ' + str(REAL_SETTINGS.getSetting('autoFindTVGenres')))
+        self.log('  Auto Find Movie Genres Channels is - ' + str(REAL_SETTINGS.getSetting('autoFindMovieGenres')))
+        self.log('  Auto Find Mixed Genres Channels is - ' + str(REAL_SETTINGS.getSetting('autoFindMixGenres')))
+        self.log('  Auto Find Music Genres Channels is - ' + str(REAL_SETTINGS.getSetting('autoFindMusicGenres')))
+        self.log('  Auto Find Live Channels is - ' + str(REAL_SETTINGS.getSetting('autoFindLive')))
+        self.log('  Channel Limit is - ' + str(REAL_SETTINGS.getSetting('limit')))
+        
+        self.log('Off Air Settings:')
+        self.log('  Off Air Mode is - ' + str(REAL_SETTINGS.getSetting('offair') == "true" ))
+        self.log('  Off Air File is - ' + str(REAL_SETTINGS.getSetting('offairfile')))
+
+        self.log('Bumpers Settings:')
+        self.log('  Bumpers Mode is - ' + str(REAL_SETTINGS.getSetting('bumpers') == "true" ))
+        self.log('  Bumpers Folder is - ' + str(REAL_SETTINGS.getSetting('bumpersfolder')))
+        self.log('  Number of Bumpers is - ' + str(REAL_SETTINGS.getSetting('numbumpers')))
+        self.log('  Max Number of Bumpers is - ' + str(REAL_SETTINGS.getSetting('maxbumpers')))
+
+        self.log('Commercials Settings:')
+        self.log('  Commercials Mode is - ' + str(REAL_SETTINGS.getSetting('commercials') == "true" ))
+        self.log('  Commercials Folder is - ' + str(REAL_SETTINGS.getSetting('commercialsfolder')))
+        self.log('  Number of Commercials is - ' + str(REAL_SETTINGS.getSetting('numcommercials')))
+        self.log('  Max Number of Commercials is - ' + str(REAL_SETTINGS.getSetting('maxcommercials')))
+
+        self.log('Trailers Settings:')
+        self.log('  Trailers Mode is - ' + str(REAL_SETTINGS.getSetting('trailers') == "true" ))
+        self.log('  Trailers Folder is - ' + str(REAL_SETTINGS.getSetting('trailersfolder')))
+        self.log('  Number of Trailers is - ' + str(REAL_SETTINGS.getSetting('numtrailers')))
+        self.log('  Max Number of Trailers is - ' + str(REAL_SETTINGS.getSetting('maxtrailers')))
+
+        self.log('Runtime Settings:')
+        self.log('  Current Channel is - ' + str(REAL_SETTINGS.getSetting('CurrentChannel')))
+        self.log('  Last Reset Time is - ' + str(REAL_SETTINGS.getSetting('LastResetTime')))
+        self.log('  Next Auto Reset Date/Time is - ' + str(REAL_SETTINGS.getSetting('nextAutoResetDateTime')))
+        self.log('  Next Auto Reset Time Interval is - ' + str(REAL_SETTINGS.getSetting('nextAutoResetDateTimeInterval')))
+        self.log('  Next Auto Reset Hour is - ' + str(REAL_SETTINGS.getSetting('nextAutoResetDateTimeResetTime')))
+        self.log('#####################################################################################')
 
         self.log('readConfig return')
         return True
@@ -1034,14 +1084,15 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
             if int(Globals.userExit) == 0 and REAL_SETTINGS.getSetting("autoChannelResetShutdown") == "true":
                 #print xbmc.executeJSONRPC('{"jsonrpc": "2.0", "method": "JSONRPC.Introspect", "id": 1}')
                 #XBMC.Quit
+                self.log("Threads - " + str(threading.enumerate()))
                 self.log("Exiting XBMC")             
                 json_query = '{"jsonrpc": "2.0", "method": "XBMC.Quit", "id": 1}'
                 xbmc.executeJSONRPC(json_query)
                 #self.close()
             else:
+                self.log("Threads - " + str(threading.enumerate()))
                 self.close()
 
-            self.log("Threads - " + str(threading.enumerate()))
 
         else:
             self.log("TVTime already triggered end")
@@ -1271,9 +1322,10 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
         # need to get current datetime in local time
         currentDateTimeTuple = localtime()       
         nextAutoResetDateTime = REAL_SETTINGS.getSetting('nextAutoResetDateTime')
-        nextAutoResetDateTimeTuple = strptime(nextAutoResetDateTime,"%Y-%m-%d %H:%M:%S")       
+        nextAutoResetDateTimeTuple = strptime(nextAutoResetDateTime,"%Y-%m-%d %H:%M:%S")
         # need to get difference between the two
         self.autoResetTimeValue = mktime(nextAutoResetDateTimeTuple) - mktime(currentDateTimeTuple)
+        self.log("Next auto reset will occur in " + str(self.autoResetTimeValue) + " seconds")
         # set timer
         self.autoResetTimer = threading.Timer(self.autoResetTimeValue, self.autoChannelReset)
 
