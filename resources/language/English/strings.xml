@@ -10,6 +10,8 @@
     <string id="30009">Other Settings</string>
     <string id="30010">Channel Logo Folder</string>
     <string id="30011">General Settings</string>
+    <string id="30012">Default channel times at startup</string>
+    <string id="30013">XBMC Version</string>
 
     <string id="30023">Commercials are any short video advertisement or promo</string>
     <string id="30024">Enable Commercials</string>
@@ -36,6 +38,7 @@
     <string id="30044">Find Movie Genres</string>
     <string id="30045">Find Mix Genres</string>
     <string id="30046">Find Music Genres</string>
+    <string id="30047">Find Live Channels</string>
 
     <string id="30050">Off Air Settings</string>
     <string id="30051">Enable Off Air Mode</string>
