@@ -11,7 +11,12 @@
       	<setting id="autoChannelResetShutdown" type="bool" visible="eq(-4,true) + eq(-3,4)" label="30923" default="false"/>
       	<setting id="ShowChannelBug" type="bool" label="30006" default="false"/>
       	<setting id="ChannelLogoFolder" type="folder" label="30010" default=""/>
-      	<setting id="Version" default="2.0.0"/>
+        <setting id="autoChannelResetInterval" type="enum" visible="eq(-2,true) + eq(-1,4)" label="30902" values="Daily|Weekly|Monthly" default="0"/>
+        <setting id="XBMC-Version" type="enum" label="30013" values="Dharma (version 10)|Pre-Eden (Nightlies)" default="0"/>
+        <!--
+        <setting id="StartMode" type="enum" label="30012" values="Resume|Real Time|Random" default="1" />      	<setting id="Version" default="2.0.0"/>
+        -->
+      	<setting id="Version" default="2.0.0 Build 20110505170400"/>
     </category>
     <category label="30904">
     	  <setting label="30908" type="lsep"/>

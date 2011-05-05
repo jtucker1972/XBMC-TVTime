@@ -16,9 +16,13 @@
 # You should have received a copy of the GNU General Public License
 # along with PseudoTV.  If not, see <http://www.gnu.org/licenses/>.
 
-import xbmc, xbmcvfs
+import xbmc
 import os, platform
 import subprocess
+try:
+    import xbmcvfs
+except:
+    pass
 
 import parsers.MP4Parser as MP4Parser
 import parsers.AVIParser as AVIParser
