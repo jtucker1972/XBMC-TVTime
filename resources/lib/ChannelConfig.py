@@ -156,6 +156,7 @@ class ChannelConfig(xbmcgui.WindowXMLDialog):
         self.movieseqList.append('10 Movies')
 
         # check if settings2.xml file exists
+        """
         if not os.path.exists(xbmc.translatePath('special://profile/addon_data/' + ADDON_ID + '/settings2.xml')):
             # if not, load presets based on networklist and studiolist
             ChannelList().autoTune()
@@ -169,7 +170,8 @@ class ChannelConfig(xbmcgui.WindowXMLDialog):
                 REAL_SETTINGS.getSetting("autoFindMusicGenres") == "true"):
                 self.log("autoTune")
                 ChannelList().autoTune()
-
+        """
+        
         self.listcontrol = self.getControl(102)
 
         for i in range(200):
