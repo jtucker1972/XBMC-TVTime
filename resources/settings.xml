@@ -11,18 +11,20 @@
       	<setting id="autoChannelResetShutdown" type="bool" visible="eq(-4,true) + eq(-3,4)" label="30923" default="false"/>
       	<setting id="ShowChannelBug" type="bool" label="30006" default="false"/>
       	<setting id="ChannelLogoFolder" type="folder" label="30010" default=""/>
+      	<setting id="Version" default="2.0.0"/>
     </category>
     <category label="30904">
     	  <setting label="30908" type="lsep"/>
     	  <setting type="action" label="30008" action="RunScript($CWD/resources/lib/ChannelConfig.py)"/>
         <setting type="sep"/>
     	  <setting label="30040" type="lsep"/>
-      	<setting id="autoFindNetworks" type="bool" label="30041" default="true"/>
+      	<setting id="autoFindNetworks" type="bool" label="30041" default="false"/>
       	<setting id="autoFindStudios" type="bool" label="30042" default="false"/>
       	<setting id="autoFindTVGenres" type="bool" label="30043" default="false"/>
-      	<setting id="autoFindMovieGenres" type="bool" label="30044" default="true"/>
+      	<setting id="autoFindMovieGenres" type="bool" label="30044" default="false"/>
       	<setting id="autoFindMixGenres" type="bool" label="30045" default="false"/>
       	<setting id="autoFindMusicGenres" type="bool" label="30046" default="false"/>
+      	<setting id="autoFindLive" type="bool" label="30047" default="false"/>
         <setting type="sep"/>
     	  <setting label="30054" type="lsep"/>
         <setting id="limit" type="enum" label="30055" values="50|100|250" default="0"/>
