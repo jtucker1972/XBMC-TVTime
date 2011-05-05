@@ -606,11 +606,12 @@ class PrestageThread(threading.Thread):
             except:
                 pass
             
-            if limitNode:
-                plimit = limitNode[0].firstChild.nodeValue
-                # force a max limit of 250 for performance reason
-                if int(plimit) < limit:
-                    limit = plimit
+            try:
+                if limitNode:
+                    plimit = limitNode[0].firstChild.nodeValue
+                    # force a max limit of 250 for performance reason
+                    if int(plimit) < limit:
+                        limit = plimit
             except:
                 pass
 
