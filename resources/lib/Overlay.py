@@ -267,27 +267,37 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
             #self.Error('Unable to find any channels. \nPlease go to the Addon Settings to configure TV Time.')
             #return
             dlg = xbmcgui.Dialog()
-
+            
+            autoTune = False
             if dlg.yesno("No Channels Configured", "Would you like TV Time to Auto Tune TV Network\nchannels the next time it loads?"):
                 REAL_SETTINGS.setSetting("autoFindNetworks","true")
+                autoTune = True
 
             if dlg.yesno("No Channels Configured", "Would you like TV Time to Auto Tune TV Genre\nchannels the next time it loads?"):
                 REAL_SETTINGS.setSetting("autoFindTVGenre","true")
+                autoTune = True
 
             if dlg.yesno("No Channels Configured", "Would you like TV Time to Auto Tune Movie Studio\nchannels the next time it loads?"):
                 REAL_SETTINGS.setSetting("autoFindStudios","true")
+                autoTune = True
 
             if dlg.yesno("No Channels Configured", "Would you like TV Time to Auto Tune Movie Genre\nchannels the next time it loads?"):
                 REAL_SETTINGS.setSetting("autoFindMovieGenres","true")
+                autoTune = True
 
             if dlg.yesno("No Channels Configured", "Would you like TV Time to Auto Tune Mix Genre\nchannels the next time it loads?"):
                 REAL_SETTINGS.setSetting("autoFindMixGenres","true")
+                autoTune = True
 
             if dlg.yesno("No Channels Configured", "Would you like TV Time to Auto Tune Music Genre\nchannels the next time it loads?"):
                 REAL_SETTINGS.setSetting("autoFindMusicGenres","true")
+                autoTune = True
 
             if dlg.yesno("No Channels Configured", "Would you like TV Time to Auto Tune Live\nchannels the next time it loads?"):
                 REAL_SETTINGS.setSetting("autoFindLive","true")
+                autoTune = True
+
+            if autoTune:
                 self.end()
                 return
 
