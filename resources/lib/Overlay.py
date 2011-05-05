@@ -119,10 +119,6 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
         # setup directories
         self.createDirectories()
 
-        # Copy feeds xml if it doesn't exist yet.
-        #if not os.path.exists(FEED_LOC,"feeds.xml"):
-        #    self.copyFeedsXML()
-        
         self.myEPG = EPGWindow("script.pseudotv.EPG.xml", ADDON_INFO, "default")
         self.myEPG.MyOverlayWindow = self
         # Don't allow any actions during initialization
@@ -155,6 +151,7 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
             autoFindTVGenres = REAL_SETTINGS.getSetting("autoFindTVGenres")        
             autoFindTVShows = REAL_SETTINGS.getSetting("autoFindTVShows")
             autoFindMusicGenres = REAL_SETTINGS.getSetting("autoFindMusicGenres")        
+            autoFindLive = REAL_SETTINGS.getSetting("autoFindLive")        
 
             self.log("autoFindMixGenres " + str(autoFindMixGenres)) 
             self.log("autoFindMovieGenres " + str(autoFindMovieGenres)) 
@@ -163,6 +160,7 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
             self.log("autoFindTVGenres " + str(autoFindTVGenres)) 
             self.log("autoFindTVShows " + str(autoFindTVShows)) 
             self.log("autoFindMusicGenres " + str(autoFindMusicGenres)) 
+            self.log("autoFindLive " + str(autoFindLive)) 
             
             if (autoFindMixGenres == "true" or       
                 autoFindMovieGenres == "true" or        
@@ -170,7 +168,8 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
                 autoFindStudios == "true" or   
                 autoFindTVGenres == "true" or       
                 autoFindTVShows == "true" or
-                autoFindMusicGenres == "true"):
+                autoFindMusicGenres == "true" or
+                autoFindLive == "true"):
                 Globals.resetSettings2 = 1
                 Globals.resetPrestage = 1
                 self.channelList.autoTune()
@@ -232,6 +231,9 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
             self.log("Auto Reset Channels")
             # auto channel reset copies over pre-staged file lists to speed up loading
             self.autoChannelReset()
+
+        # update live channels
+        self.resetLiveChannels()
 
         # time to load in the channels
         if self.loadChannels() == False:
@@ -295,13 +297,11 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
 
 
     def checkShutdownFlag(self):
-        self.log("checkShutdownFlag")
         if Globals.userExit == 1:
             self.log("Calling TV Time Exit")
             self.shutdownTimer.cancel()
             self.end()
         else:
-            self.log("Resetting checkShutdownFlag")
             self.shutdownTimer = threading.Timer(1, self.checkShutdownFlag)
             self.shutdownTimer.start()
         
@@ -317,11 +317,11 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
         self.createDirectory(FEED_LOC)
         
 
-    def copyFeedsXML(self):
-        self.log("createFeedXML")
-        if not os.path.exists(FEED_LOC,"feeds.xml"):
+    def copySourcesXML(self):
+        self.log("copySourcesXML")
+        if not os.path.exists(os.path.join(FEED_LOC,"sources.xml")):
             # copy default feeds.xml file
-            self.channelList.copyFiles(os.path.join(os.path.join(ADDON_INFO, 'resources', 'feeds')), FEED_LOC)
+            self.channelList.copyFiles(os.path.join(ADDON_INFO, 'resources', 'live'), LIVE_LOC)
             
 
     def buildMetaFiles(self):
@@ -1095,7 +1095,24 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
                 Globals.channelsReset = 1
                 Globals.forceChannelResetActive = 0
             
-    
+
+    def resetLiveChannels(self):
+        self.dlg = xbmcgui.DialogProgress()
+        self.dlg.create("TV Time", "Updating Live Channels")
+        progressIndicator = 0
+        self.dlg.update(progressIndicator,"Updating Live Channels")
+        channel = 0
+        maxChannels = REAL_SETTINGS.getSetting("maxChannels")
+        for i in range(int(maxChannels)):
+            channel = channel + 1
+            if int(ADDON_SETTINGS.getSetting("Channel_" + str(channel) + "_type")) == 9:
+                chname = ADDON_SETTINGS.getSetting("Channel_" + str(channel) + "_3")
+                progressIndicator = (int(channel) / int(maxChannels)) * 100
+                self.dlg.update(progressIndicator,"Updating Live Channels","Updating Channel " + str(channel) + " - " + str(chname))
+                self.channelList.buildChannelFileList(CHANNELS_LOC, channel)
+        self.dlg.close()
+
+
     # check if auto reset times have expired
     def checkAutoChannelReset(self):
         needsreset = False

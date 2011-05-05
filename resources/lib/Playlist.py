@@ -81,10 +81,11 @@ class Playlist:
 
 
     def log(self, msg):
-        xbmc.log('XBTV - Playlist: ' + msg)
+        xbmc.log('TV Time - Playlist: ' + msg)
 
 
     def load(self, filename):
+        self.log("load " + str(filename))
         self.clear()
 
         try:

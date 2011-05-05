@@ -43,7 +43,7 @@ MODE_UNWATCHED = 1
 MODE_NOSPECIALS = 1
 MODE_RANDOM_FILELISTS = 1
 
-NUMBER_CHANNEL_TYPES = 9
+NUMBER_CHANNEL_TYPES = 10
 
 IMAGES_LOC = xbmc.translatePath(os.path.join(ADDON_INFO, 'resources', 'images')) + '/'
 PRESETS_LOC = xbmc.translatePath(os.path.join(ADDON_INFO, 'resources', 'presets')) + '/'
@@ -53,6 +53,7 @@ PRESTAGE_LOC = os.path.join(CHANNELS_LOC, 'prestaged') + '/'
 TEMP_LOC = os.path.join(CHANNELS_LOC, 'temp') + '/'
 META_LOC = os.path.join(CHANNELS_LOC, 'meta') + '/'
 FEED_LOC = os.path.join(CHANNELS_LOC, 'feeds') + '/'
+#FEED_LOC = os.path.join(ADDON_INFO, 'feeds') + '/'
 
 TIME_BAR = 'pstvTimeBar.png'
 BUTTON_FOCUS = 'pstvButtonFocus.png'
