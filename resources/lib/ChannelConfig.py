@@ -156,6 +156,56 @@ class ChannelConfig(xbmcgui.WindowXMLDialog):
         self.movieseqList.append('10 Movies')
 
         # check if settings2.xml file exists
+        # read in channel playlists in video, music and mixed folders
+        channelNum = 0
+        for i in range(500):
+            if os.path.exists(xbmc.translatePath('special://profile/playlists/video') + '/Channel_' + str(i + 1) + '.xsp'):
+                channelNum = channelNum + 1
+                ADDON_SETTINGS.setSetting("Channel_" + str(channelNum) + "_type", "0")
+                ADDON_SETTINGS.setSetting("Channel_" + str(channelNum) + "_time", "0")
+                ADDON_SETTINGS.setSetting("Channel_" + str(channelNum) + "_1", xbmc.translatePath('special://profile/playlists/video/') + 'Channel_' + str(i + 1) + '.xsp')
+                ADDON_SETTINGS.setSetting("Channel_" + str(channelNum) + "_2", str(""))
+                ADDON_SETTINGS.setSetting("Channel_" + str(channelNum) + "_3", ChannelList().cleanString(ChannelList().getSmartPlaylistName(xbmc.translatePath('special://profile/playlists/video') + '/Channel_' + str(i + 1) + '.xsp')))
+                ADDON_SETTINGS.setSetting("Channel_" + str(channelNum) + "_4", str(""))
+                ADDON_SETTINGS.setSetting("Channel_" + str(channelNum) + "_5", str(""))
+                ADDON_SETTINGS.setSetting("Channel_" + str(channelNum) + "_6", str(""))
+                ADDON_SETTINGS.setSetting("Channel_" + str(channelNum) + "_7", str(""))
+                ADDON_SETTINGS.setSetting("Channel_" + str(channelNum) + "_8", str(""))
+                ADDON_SETTINGS.setSetting("Channel_" + str(channelNum) + "_9", str(""))
+                ADDON_SETTINGS.setSetting("Channel_" + str(channelNum) + "_playlist", xbmc.translatePath('special://profile/playlists/video/') + 'Channel_' + str(i + 1) + '.xsp')
+                #self.updateDialog(progressIndicator,"Auto Tune","Found " + str(self.channelList.getSmartPlaylistName(xbmc.translatePath('special://profile/playlists/video') + '/Channel_' + str(i + 1) + '.xsp')),"")
+            elif os.path.exists(xbmc.translatePath('special://profile/playlists/mixed') + '/Channel_' + str(i + 1) + '.xsp'):
+                channelNum = channelNum + 1
+                ADDON_SETTINGS.setSetting("Channel_" + str(channelNum) + "_type", "0")
+                ADDON_SETTINGS.setSetting("Channel_" + str(channelNum) + "_time", "0")
+                ADDON_SETTINGS.setSetting("Channel_" + str(channelNum) + "_1", xbmc.translatePath('special://profile/playlists/mixed/') + 'Channel_' + str(i + 1) + '.xsp')
+                ADDON_SETTINGS.setSetting("Channel_" + str(channelNum) + "_2", str(""))
+                ADDON_SETTINGS.setSetting("Channel_" + str(channelNum) + "_3", ChannelList().cleanString(ChannelList().getSmartPlaylistName(xbmc.translatePath('special://profile/playlists/mixed') + '/Channel_' + str(i + 1) + '.xsp')))
+                ADDON_SETTINGS.setSetting("Channel_" + str(channelNum) + "_4", str(""))
+                ADDON_SETTINGS.setSetting("Channel_" + str(channelNum) + "_5", str(""))
+                ADDON_SETTINGS.setSetting("Channel_" + str(channelNum) + "_6", str(""))
+                ADDON_SETTINGS.setSetting("Channel_" + str(channelNum) + "_7", str(""))
+                ADDON_SETTINGS.setSetting("Channel_" + str(channelNum) + "_8", str(""))
+                ADDON_SETTINGS.setSetting("Channel_" + str(channelNum) + "_9", str(""))
+                ADDON_SETTINGS.setSetting("Channel_" + str(channelNum) + "_playlist", xbmc.translatePath('special://profile/playlists/mixed/') + 'Channel_' + str(i + 1) + '.xsp')
+                #self.updateDialog(progressIndicator,"Auto Tune","Found " + str(self.channelList.getSmartPlaylistName(xbmc.translatePath('special://profile/playlists/mixed') + '/Channel_' + str(i + 1) + '.xsp')),"")
+            elif os.path.exists(xbmc.translatePath('special://profile/playlists/music') + '/Channel_' + str(i + 1) + '.xsp'):
+                channelNum = channelNum + 1
+                ADDON_SETTINGS.setSetting("Channel_" + str(channelNum) + "_type", "0")
+                ADDON_SETTINGS.setSetting("Channel_" + str(channelNum) + "_time", "0")
+                ADDON_SETTINGS.setSetting("Channel_" + str(channelNum) + "_1", xbmc.translatePath('special://profile/playlists/music/') + 'Channel_' + str(i + 1) + '.xsp')
+                ADDON_SETTINGS.setSetting("Channel_" + str(channelNum) + "_2", str(""))
+                ADDON_SETTINGS.setSetting("Channel_" + str(channelNum) + "_3", ChannelList().cleanString(ChannelList().getSmartPlaylistName(xbmc.translatePath('special://profile/playlists/music') + '/Channel_' + str(i + 1) + '.xsp')))
+                ADDON_SETTINGS.setSetting("Channel_" + str(channelNum) + "_4", str(""))
+                ADDON_SETTINGS.setSetting("Channel_" + str(channelNum) + "_5", str(""))
+                ADDON_SETTINGS.setSetting("Channel_" + str(channelNum) + "_6", str(""))
+                ADDON_SETTINGS.setSetting("Channel_" + str(channelNum) + "_7", str(""))
+                ADDON_SETTINGS.setSetting("Channel_" + str(channelNum) + "_8", str(""))
+                ADDON_SETTINGS.setSetting("Channel_" + str(channelNum) + "_9", str(""))
+                ADDON_SETTINGS.setSetting("Channel_" + str(channelNum) + "_playlist", xbmc.translatePath('special://profile/playlists/music/') + 'Channel_' + str(i + 1) + '.xsp')
+                #self.updateDialog(progressIndicator,"Auto Tune","Found " + str(self.channelList.getSmartPlaylistName(xbmc.translatePath('special://profile/playlists/music') + '/Channel_' + str(i + 1) + '.xsp')),"")
+        ADDON_SETTINGS.writeSettings()
+                        
         """
         if not os.path.exists(xbmc.translatePath('special://profile/addon_data/' + ADDON_ID + '/settings2.xml')):
             # if not, load presets based on networklist and studiolist

@@ -29,7 +29,8 @@ ADDON_SETTINGS = Settings.Settings()
 REAL_SETTINGS = xbmcaddon.Addon(id=ADDON_ID)
 ADDON_INFO = REAL_SETTINGS.getAddonInfo('path')
 
-VERSION = "2.0.0"
+VERSION = "2.0.1"
+REAL_SETTINGS.setSetting("Version",VERSION)
 
 TIMEOUT = 15 * 1000
 TOTAL_FILL_CHANNELS = 20
@@ -193,6 +194,8 @@ def migrate():
         REAL_SETTINGS.setSetting("InfoOnChange",InfoOnChange)
         REAL_SETTINGS.setSetting("LastResetTime",LastResetTime)
         REAL_SETTINGS.setSetting("ShowChannelBug",ShowChannelBug)
+        REAL_SETTINGS.setSetting("Version",VERSION)
+        REAL_SETTINGS.setSetting("XBMC-Version",0)
 
         REAL_SETTINGS.setSetting("autoChannelReset","false")
 
@@ -208,11 +211,12 @@ def migrate():
         REAL_SETTINGS.setSetting("autoChannelResetTime",ChannelResetSettingTime)           
         REAL_SETTINGS.setSetting("autoChannelResetShutdown","false")
 
-        REAL_SETTINGS.setSetting("autoFindNetworks","true")
+        REAL_SETTINGS.setSetting("autoFindNetworks","false")
         REAL_SETTINGS.setSetting("autoFindStudios","false")
         REAL_SETTINGS.setSetting("autoFindTVGenres","false")
-        REAL_SETTINGS.setSetting("autoFindMovieGenres","true")
+        REAL_SETTINGS.setSetting("autoFindMovieGenres","false")
         REAL_SETTINGS.setSetting("autoFindMusicGenres","false")
+        REAL_SETTINGS.setSetting("autoFindLive","false")
         REAL_SETTINGS.setSetting("limit","0")
 
         REAL_SETTINGS.setSetting("offair","false")

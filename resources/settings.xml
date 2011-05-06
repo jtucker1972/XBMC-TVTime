@@ -16,7 +16,7 @@
         <!--
         <setting id="StartMode" type="enum" label="30012" values="Resume|Real Time|Random" default="1" />      	<setting id="Version" default="2.0.0"/>
         -->
-      	<setting id="Version" default="2.0.0 Build 20110505170400"/>
+      	<setting id="Version" default="2.0.1"/>
     </category>
     <category label="30904">
     	  <setting label="30908" type="lsep"/>
