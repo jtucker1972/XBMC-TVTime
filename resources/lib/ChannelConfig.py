@@ -320,7 +320,7 @@ class ChannelConfig(xbmcgui.WindowXMLDialog):
                 ADDON_SETTINGS.setSetting(setting2, str(MODE_SERIAL))
             else:
                 ADDON_SETTINGS.setSetting(setting2, '')                
-            ADDON_SETTINGS.setSetting(setting3, self.chnlst.cleanString(self.getControl(162).getLabel()))
+            ADDON_SETTINGS.setSetting(setting3, self.chnlst.cleanString(self.getControl(162).getLabel()) + ' TV')
             if self.getControl(366).isSelected():
                 ADDON_SETTINGS.setSetting(setting4, str(MODE_UNWATCHED))
             else:
@@ -339,7 +339,7 @@ class ChannelConfig(xbmcgui.WindowXMLDialog):
             ADDON_SETTINGS.setSetting(settingtime, 0)
             ADDON_SETTINGS.setSetting(setting1, self.chnlst.cleanString(self.getControl(172).getLabel()))
             ADDON_SETTINGS.setSetting(setting2, '')
-            ADDON_SETTINGS.setSetting(setting3, self.chnlst.cleanString(self.getControl(172).getLabel()))
+            ADDON_SETTINGS.setSetting(setting3, self.chnlst.cleanString(self.getControl(172).getLabel()) + ' Movies')
             if self.getControl(376).isSelected():
                 ADDON_SETTINGS.setSetting(setting4, str(MODE_UNWATCHED))
             else:
@@ -358,7 +358,7 @@ class ChannelConfig(xbmcgui.WindowXMLDialog):
                 ADDON_SETTINGS.setSetting(setting2, str(MODE_SERIAL))
             else:
                 ADDON_SETTINGS.setSetting(setting2, '')                
-            ADDON_SETTINGS.setSetting(setting3, self.chnlst.cleanString(self.getControl(182).getLabel()))
+            ADDON_SETTINGS.setSetting(setting3, self.chnlst.cleanString(self.getControl(182).getLabel()) + ' Mix')
             if self.getControl(386).isSelected():
                 ADDON_SETTINGS.setSetting(setting4, str(MODE_UNWATCHED))
             else:
@@ -412,7 +412,7 @@ class ChannelConfig(xbmcgui.WindowXMLDialog):
             ADDON_SETTINGS.setSetting(settingtime, 0)
             ADDON_SETTINGS.setSetting(setting1, self.chnlst.cleanString(self.getControl(212).getLabel()))
             ADDON_SETTINGS.setSetting(setting2, '')
-            ADDON_SETTINGS.setSetting(setting3, self.chnlst.cleanString(self.getControl(212).getLabel()))
+            ADDON_SETTINGS.setSetting(setting3, self.chnlst.cleanString(self.getControl(212).getLabel()) + ' Music')
             ADDON_SETTINGS.setSetting(setting4, '')
             ADDON_SETTINGS.setSetting(setting5, '')
             ADDON_SETTINGS.setSetting(setting6, '')
