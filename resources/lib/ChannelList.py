@@ -411,7 +411,7 @@ class ChannelList:
         sourcesXML = open(os.path.join(FEED_LOC,'sources.xml'),'w')
         sourcesXML.write('<?xml version="1.0" encoding="UTF-8"?>\n')
         sourcesXML.write('<feeds>\n')
-        #sourcesXML.write('    <feed url="http://archiveclassicmovies.com/acm.rss">ACM Classic Movies</feed>\n')
+        sourcesXML.write('    <feed url="http://archiveclassicmovies.com/acm.rss">ACM Classic Movies</feed>\n')
         sourcesXML.write('    <feed url="http://feeds.feedburner.com/alaskapodshow">Alaska HDTV</feed>\n')
         #sourcesXML.write('    <feed url="http://images.apple.com/trailers/home/rss/newtrailers.rss">Apple Movie Trailers</feed>\n')
         #sourcesXML.write('    <feed url="http://www.atomfilms.com/rss/all_new_films.xml">Atom Films</feed>\n')
@@ -1765,7 +1765,8 @@ class ChannelList:
                     # will see if this works or whether
                     # we will need to add shows direct to playlist and 
                     # call play
-                    if len(url) > 0 and int(dur) > 0:
+                    #if len(url) > 0 and int(dur) > 0:
+                    if len(url) > 0:
                         tmpstr = str(dur) + ',' + title + "//" + showtitle + "//" + self.uncleanString(description)
                         tmpstr = tmpstr[:600]
                         tmpstr = tmpstr.replace("\\n", " ").replace("\n", " ").replace("\r", " ").replace("\\r", " ").replace("\\\"", "\"")
@@ -1804,8 +1805,11 @@ class ChannelList:
                 xml.close()
        
             if seriesNameNode:
-                title = seriesNameNode[0].firstChild.nodeValue
-
+                try:
+                    title = seriesNameNode[0].firstChild.nodeValue
+                except:
+                    title = ""
+                    
         # look for tvshow.nfo
         # same folder as file
         fle = os.path.join(tvshowdir, "tvshow.nfo")
@@ -1828,9 +1832,12 @@ class ChannelList:
                 xml.close()
        
             if titleNode:
-                title = titleNode[0].firstChild.nodeValue
-
-        # user folder name if all else fails
+                try:
+                    title = titleNode[0].firstChild.nodeValue
+                except:
+                    title = ""
+                    
+        # use folder name if all else fails
         if title == "":        
             title = os.path.split(fpath)[(len(os.path.split(fpath))-1)]
         
@@ -1867,8 +1874,11 @@ class ChannelList:
                 xml.close()
        
             if episodeNameNode:
-                showtitle = episodeNameNode[0].firstChild.nodeValue
-
+                try:
+                    showtitle = episodeNameNode[0].firstChild.nodeValue
+                except:
+                    showtitle = ""
+                    
         # XBMC
         # location = same as video files
         # filename format = <filename.nfo
@@ -1894,8 +1904,11 @@ class ChannelList:
                 xml.close()
        
             if titleNode:
-                showtitle = titleNode[0].firstChild.nodeValue
-
+                try:
+                    showtitle = titleNode[0].firstChild.nodeValue
+                except:
+                    showtitle = ""
+                    
         # if all else fails, get showtitle from folder
         if showtitle == "":
             showtitle = os.path.split(fpath)[(len(os.path.split(fpath))-2)]
