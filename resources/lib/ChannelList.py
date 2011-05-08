@@ -2594,7 +2594,19 @@ class ChannelList:
         self.line3 = "Querying XBMC Database"
         self.updateDialog(self.progress,self.line1,self.line2,self.line3)
         self.videoParser = VideoParser()
-        json_query = '{"jsonrpc": "2.0", "method": "Files.GetDirectory", "params": {"directory": "%s", "media": "%s", "fields":["duration","tagline","showtitle","album","artist","plot"]}, "id": 1}' % ( self.escapeDirJSON( playlist ), media_type )
+        XBMC_VERSION = ADDON_SETTINGS.getSetting("XBMC-Version")
+        """
+        XBMC-VERSION:
+          0 - Dharma (Version 10)
+          1 - Pre-Eden (Nightlies)
+        """
+        if REAL_SETTINGS.getSetting("XBMC-VERSION") == "0":
+            # Dharma version
+            json_query = '{"jsonrpc": "2.0", "method": "Files.GetDirectory", "params": {"directory": "%s", "media": "%s", "recursive": "%s", "fields":["duration","tagline","showtitle","album","artist","plot"]}, "id": 1}' % ( self.escapeDirJSON( playlist ), media_type, recursive )
+        else:
+            # Pre-Eden - Version
+            json_query = '{"jsonrpc": "2.0", "method": "Files.GetDirectory", "params": {"directory": "%s", "media": "%s", "fields":["duration","tagline","showtitle","album","artist","plot"]}, "id": 1}' % ( self.escapeDirJSON( playlist ), media_type )
+
         json_folder_detail = xbmc.executeJSONRPC(json_query)
 #        self.log(json_folder_detail)
         file_detail = re.compile( "{(.*?)}", re.DOTALL ).findall(json_folder_detail)
