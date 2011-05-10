@@ -865,7 +865,6 @@ class ChannelList:
             chsetting9 = ADDON_SETTINGS.getSetting('Channel_' + str(channel) + '_9') # randomize tv shows
             # save playlist filename as a setting so we can reference it later
             playlist = self.makeTypePlaylist(chtype, chsetting1, chsetting2, chsetting3, chsetting4, chsetting5, chsetting6, chsetting7, chsetting8, chsetting9)
-            self.log("playlist " + str(playlist))
             if chtype == 0:
                 # set playlist to selected playlist 
                 ADDON_SETTINGS.setSetting('Channel_' + str(channel) + '_playlist', chsetting1)
@@ -1002,8 +1001,18 @@ class ChannelList:
             limit = 100
         elif limit == "2":
             limit = 250
+        if serial == "":
+            serial = 0
+        if unwatched == "":
+            unwatched = 0
+        if nospecials == "":
+            nospecials = 0
+        if resolution == "":
+            resolution = 0
+
         show_playlists = []
         show = show.lower()
+
         order = 'random'
 
         try:
@@ -1053,6 +1062,15 @@ class ChannelList:
             limit = 100
         elif limit == "2":
             limit = 250
+        if serial == "":
+            serial = 0
+        if unwatched == "":
+            unwatched = 0
+        if nospecials == "":
+            nospecials = 0
+        if resolution == "":
+            resolution = 0
+
         genre = genre.lower()
         flename = xbmc.makeLegalFilename(GEN_CHAN_LOC + 'mixed_' + genre + '.xsp')
 
@@ -1083,10 +1101,18 @@ class ChannelList:
             limit = 100
         elif limit == "2":
             limit = 250
+        if serial == "":
+            serial = 0
+        if unwatched == "":
+            unwatched = 0
+        if nospecials == "":
+            nospecials = 0
+        if resolution == "":
+            resolution = 0
 
+        order = 'random'
         try:
             setting = int(serial)
-            order = 'random'
             if setting & MODE_ORDERAIRDATE > 0:
                 order = 'airdate'
         except:
@@ -1120,8 +1146,7 @@ class ChannelList:
             if resolution == '1080p Only':
                 fle.write('    <rule field="videoresolution" operator="greaterthan">1079</rule>\n')
 
-        if (pltype=="episodes"):
-            self.writeXSPFooter(fle, limit, order)
+        self.writeXSPFooter(fle, limit, order)
 
         fle.close()
         
@@ -1137,6 +1162,14 @@ class ChannelList:
             limit = 100
         elif limit == "2":
             limit = 250
+        if serial == "":
+            serial = 0
+        if unwatched == "":
+            unwatched = 0
+        if nospecials == "":
+            nospecials = 0
+        if resolution == "":
+            resolution = 0
         studio = studio.lower()
         flename = xbmc.makeLegalFilename(GEN_CHAN_LOC + 'studio_' + studio + '.xsp')
         try:
@@ -1196,6 +1229,7 @@ class ChannelList:
 
 
     def writeXSPFooter(self, fle, limit, order):
+        self.log("writeXSPFooter")
         fle.write('    <limit>' + str(limit) + '</limit>\n')
         if order <> "":
             fle.write('    <order direction="ascending">' + order + '</order>\n')
@@ -2003,7 +2037,7 @@ class ChannelList:
             limit = 250
 
         # get channel settings
-        fle = ADDON_SETTINGS.getSetting('Channel_' + str(channel) + '_playlist') # Playlist filename
+        playlist = ADDON_SETTINGS.getSetting('Channel_' + str(channel) + '_playlist') # Playlist filename
         chtype = ADDON_SETTINGS.getSetting('Channel_' + str(channel) + '_type') # Channel type
         channelName = ADDON_SETTINGS.getSetting('Channel_' + str(channel) + '_3') # Channel Name
         serial = ADDON_SETTINGS.getSetting('Channel_' + str(channel) + '_2') # Serial or Random
@@ -2012,20 +2046,20 @@ class ChannelList:
         self.line3 = ""
         self.updateDialog(self.progress,self.line1,self.line2,self.line3)
         
-        if len(fle) == 0:
+        if len(playlist) == 0:
             self.log("makeChannelListFromPlaylist: Unable to locate the playlist for channel " + str(channelName), xbmc.LOGERROR)
             return False
 
         try:
-            xml = open(fle, "r")
+            xml = open(playlist, "r")
         except:
-            self.log("makeChannelListFromPlaylist: Unable to open the smart playlist " + fle, xbmc.LOGERROR)
+            self.log("makeChannelListFromPlaylist: Unable to open the smart playlist " + playlist, xbmc.LOGERROR)
             return False
 
         try:
             dom = parse(xml)
         except:
-            self.log("makeChannelListFromPlaylist: Problem parsing playlist " + fle, xbmc.LOGERROR)
+            self.log("makeChannelListFromPlaylist: Problem parsing playlist " + playlist, xbmc.LOGERROR)
             xml.close()
             return False
 
@@ -2058,7 +2092,7 @@ class ChannelList:
         if pltype == 'mixed':
             self.level = 0 # used in buildMixedFileListFromPlaylist to keep track of limit for different playlists
             self.fileLists = []
-            self.fileLists = self.buildMixedFileListsFromPlaylist(fle, channel)
+            self.fileLists = self.buildMixedFileListsFromPlaylist(playlist, channel)
             
             if not "movies" in self.fileLists and not "episodes" in self.fileLists:
                 fileList = self.buildMixedTVShowFileList(self.fileLists, channel, limit)
@@ -2067,7 +2101,9 @@ class ChannelList:
                 if randomize:
                     random.shuffle(fileList)                    
         else:
-            fileList = self.buildFileListFromPlaylist(channel, fle)
+            self.log("channel " + str(channel))
+            self.log("playlist " + str(playlist))
+            fileList = self.buildFileListFromPlaylist(channel, playlist)
             if randomize:
                 random.shuffle(fileList)                    
         
@@ -2616,7 +2652,9 @@ class ChannelList:
             if match:
                 if(match.group(1).endswith("/") or match.group(1).endswith("\\")):
                     if(recursive == "TRUE"):
-                        fileList.extend(self.buildFileListFromPlaylist(match.group(1), media_type, recursive))
+                        self.log("channel " + str(channel))
+                        self.log("playlist " + str(match.group(1)))
+                        fileList.extend(self.buildFileListFromPlaylist(channel, match.group(1), media_type, recursive))
                 else:
                     duration = re.search('"duration" *: *([0-9]*?),', f)
                     title = re.search('"label" *: *"(.*?)"', f)
