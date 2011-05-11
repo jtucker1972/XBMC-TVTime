@@ -243,11 +243,11 @@ class EPGWindow(xbmcgui.WindowXMLDialog):
             # music channel or live channel
             self.channelButtons[row].append(xbmcgui.ControlButton(basex, basey, basew, baseh, chname, focusTexture=self.textureButtonFocus, noFocusTexture=self.textureButtonNoFocus, alignment=4, textColor=self.textcolor, focusedColor=self.focusedcolor))
             self.addControl(self.channelButtons[row][0])
-        elif self.MyOverlayWindow.channels[curchannel - 1].isPaused:
-            self.log("adding paused button")
-            # if the channel is paused, then only 1 button needed
-            self.channelButtons[row].append(xbmcgui.ControlButton(basex, basey, basew, baseh, self.MyOverlayWindow.channels[curchannel - 1].getCurrentTitle() + " (paused)", focusTexture=self.textureButtonFocus, noFocusTexture=self.textureButtonNoFocus, alignment=4, textColor=self.textcolor, focusedColor=self.focusedcolor))
-            self.addControl(self.channelButtons[row][0])
+        #elif self.MyOverlayWindow.channels[curchannel - 1].isPaused:
+        #    self.log("adding paused button")
+        #    # if the channel is paused, then only 1 button needed
+        #    self.channelButtons[row].append(xbmcgui.ControlButton(basex, basey, basew, baseh, self.MyOverlayWindow.channels[curchannel - 1].getCurrentTitle() + " (paused)", focusTexture=self.textureButtonFocus, noFocusTexture=self.textureButtonNoFocus, alignment=4, textColor=self.textcolor, focusedColor=self.focusedcolor))
+        #    self.addControl(self.channelButtons[row][0])
         else:
             self.log("adding playlist button")
             # Find the show that was running at the given time
@@ -617,9 +617,9 @@ class EPGWindow(xbmcgui.WindowXMLDialog):
         if int(chtype) == 9 and int(totalDuration) == 0:
             self.log("Live channel without duration.")
             return self.MyOverlayWindow.channels[channel - 1].playlistPosition
-        elif self.MyOverlayWindow.channels[channel - 1].isPaused:
-            self.log('determinePlaylistPosAtTime paused return')
-            return self.MyOverlayWindow.channels[channel - 1].playlistPosition
+        #elif self.MyOverlayWindow.channels[channel - 1].isPaused:
+        #    self.log('determinePlaylistPosAtTime paused return')
+        #    return self.MyOverlayWindow.channels[channel - 1].playlistPosition
         else:
             # Find the show that was running at the given time
             # Use the current time and show offset to calculate it
