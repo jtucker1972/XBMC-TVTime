@@ -741,6 +741,14 @@ class ChannelConfig(xbmcgui.WindowXMLDialog):
         except:
             self.log("Unable to get some setting")
 
+        if chansetting2 == "": chansetting2 = 0
+        if chansetting4 == "": chansetting4 = 0
+        if chansetting5 == "": chansetting5 = 0
+        if chansetting6 == "": chansetting6 = "All"
+        if chansetting7 == "": chansetting7 = 0
+        if chansetting8 == "": chansetting8 = 0
+        if chansetting9 == "": chansetting9 = 0
+        
         self.getControl(109).setLabel(self.getChanTypeLabel(chantype))
 
         if chantype == 0:
