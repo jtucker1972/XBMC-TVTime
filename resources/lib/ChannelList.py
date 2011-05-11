@@ -411,7 +411,7 @@ class ChannelList:
         sourcesXML = open(os.path.join(FEED_LOC,'sources.xml'),'w')
         sourcesXML.write('<?xml version="1.0" encoding="UTF-8"?>\n')
         sourcesXML.write('<feeds>\n')
-        sourcesXML.write('    <feed url="http://archiveclassicmovies.com/acm.rss">ACM Classic Movies</feed>\n')
+        #sourcesXML.write('    <feed url="http://archiveclassicmovies.com/acm.rss">ACM Classic Movies</feed>\n')
         sourcesXML.write('    <feed url="http://feeds.feedburner.com/alaskapodshow">Alaska HDTV</feed>\n')
         #sourcesXML.write('    <feed url="http://images.apple.com/trailers/home/rss/newtrailers.rss">Apple Movie Trailers</feed>\n')
         #sourcesXML.write('    <feed url="http://www.atomfilms.com/rss/all_new_films.xml">Atom Films</feed>\n')
@@ -545,6 +545,14 @@ class ChannelList:
     def autoTune(self):
         self.log('autoTune')
         
+        # delete settings2.xml
+        settingsFile = xbmc.translatePath('special://profile/addon_data/' + ADDON_ID + '/settings2.xml')
+        if os.path.exists(settingsFile):
+            try:
+                os.remove(settingsFile)
+            except:
+                self.log("Unable to delete " + str(settingsFile))
+
         channelNum = 0
 
         self.dlg = xbmcgui.DialogProgress()
@@ -554,6 +562,7 @@ class ChannelList:
         # need to get number of Channel_X files in the video and mix folders
         for i in range(500):
             if os.path.exists(xbmc.translatePath('special://profile/playlists/video') + '/Channel_' + str(i + 1) + '.xsp'):
+                self.log("Adding Custom Video Playlist Channel")
                 channelNum = channelNum + 1
                 ADDON_SETTINGS.setSetting("Channel_" + str(channelNum) + "_type", "0")
                 ADDON_SETTINGS.setSetting("Channel_" + str(channelNum) + "_time", "0")
@@ -569,6 +578,7 @@ class ChannelList:
                 ADDON_SETTINGS.setSetting("Channel_" + str(channelNum) + "_playlist", xbmc.translatePath('special://profile/playlists/video/') + 'Channel_' + str(i + 1) + '.xsp')
                 self.updateDialog(progressIndicator,"Auto Tune","Found " + str(self.getSmartPlaylistName(xbmc.translatePath('special://profile/playlists/video') + '/Channel_' + str(i + 1) + '.xsp')),"")
             elif os.path.exists(xbmc.translatePath('special://profile/playlists/mixed') + '/Channel_' + str(i + 1) + '.xsp'):
+                self.log("Adding Custom Mixed Playlist Channel")
                 channelNum = channelNum + 1
                 ADDON_SETTINGS.setSetting("Channel_" + str(channelNum) + "_type", "0")
                 ADDON_SETTINGS.setSetting("Channel_" + str(channelNum) + "_time", "0")
@@ -584,6 +594,7 @@ class ChannelList:
                 ADDON_SETTINGS.setSetting("Channel_" + str(channelNum) + "_playlist", xbmc.translatePath('special://profile/playlists/mixed/') + 'Channel_' + str(i + 1) + '.xsp')
                 self.updateDialog(progressIndicator,"Auto Tune","Found " + str(self.getSmartPlaylistName(xbmc.translatePath('special://profile/playlists/mixed') + '/Channel_' + str(i + 1) + '.xsp')),"")
             elif os.path.exists(xbmc.translatePath('special://profile/playlists/music') + '/Channel_' + str(i + 1) + '.xsp'):
+                self.log("Adding Custom Music Playlist Channel")
                 channelNum = channelNum + 1
                 ADDON_SETTINGS.setSetting("Channel_" + str(channelNum) + "_type", "0")
                 ADDON_SETTINGS.setSetting("Channel_" + str(channelNum) + "_time", "0")
@@ -1799,8 +1810,7 @@ class ChannelList:
                     # will see if this works or whether
                     # we will need to add shows direct to playlist and 
                     # call play
-                    #if len(url) > 0 and int(dur) > 0:
-                    if len(url) > 0:
+                    if len(url) > 0 and int(dur) > 0:
                         tmpstr = str(dur) + ',' + title + "//" + showtitle + "//" + self.uncleanString(description)
                         tmpstr = tmpstr[:600]
                         tmpstr = tmpstr.replace("\\n", " ").replace("\n", " ").replace("\r", " ").replace("\\r", " ").replace("\\\"", "\"")
