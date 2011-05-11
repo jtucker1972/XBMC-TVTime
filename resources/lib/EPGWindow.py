@@ -239,9 +239,8 @@ class EPGWindow(xbmcgui.WindowXMLDialog):
         self.log("deleting channel button row")
         del self.channelButtons[row][:]
 
-        if int(chtype) == 9 and int(totalDuration) == 0:
-            self.log("adding live channel without durations button" + str())
-            # live channel without known durations
+        if int(chtype) == 8 or int(chtype) == 9:
+            # music channel or live channel
             self.channelButtons[row].append(xbmcgui.ControlButton(basex, basey, basew, baseh, chname, focusTexture=self.textureButtonFocus, noFocusTexture=self.textureButtonNoFocus, alignment=4, textColor=self.textcolor, focusedColor=self.focusedcolor))
             self.addControl(self.channelButtons[row][0])
         elif self.MyOverlayWindow.channels[curchannel - 1].isPaused:
@@ -343,7 +342,7 @@ class EPGWindow(xbmcgui.WindowXMLDialog):
             self.closeEPG()
         elif action == ACTION_SELECT_ITEM:
             lastaction = time.time() - self.lastActionTime
-
+            self.log("lastaction " + str(lastaction))
             if lastaction >= 2:
                 self.selectShow()
                 self.closeEPG()
@@ -564,8 +563,6 @@ class EPGWindow(xbmcgui.WindowXMLDialog):
 
         plpos = self.determinePlaylistPosAtTime(starttime, newchan)
 
-        self.log("plpos" + str(plpos))
-
         if plpos == -1:
             self.log('Unable to find the proper playlist to set from EPG', xbmc.LOGERROR)
             return
@@ -574,29 +571,25 @@ class EPGWindow(xbmcgui.WindowXMLDialog):
         pos = self.MyOverlayWindow.channels[newchan - 1].playlistPosition
         showoffset = self.MyOverlayWindow.channels[newchan - 1].showTimeOffset
 
-        self.log("newchan " + str(newchan))
-        self.log("timedif " + str(timedif))
-        self.log("pos " + str(pos))
-        self.log("showoffset" + str(showoffset))
+        while showoffset + timedif > self.MyOverlayWindow.channels[newchan - 1].getItemDuration(pos):
+            timedif -= self.MyOverlayWindow.channels[newchan - 1].getItemDuration(pos) - showoffset
+            pos = self.MyOverlayWindow.channels[newchan - 1].fixPlaylistIndex(pos + 1)
+            showoffset = 0
 
+        self.log("pos " + str(pos))
+        self.log("plpos " + str(plpos))
+
+        chname = ADDON_SETTINGS.getSetting("Channel_" + str(newchan) + "_3")
         chtype = ADDON_SETTINGS.getSetting("Channel_" + str(newchan) + "_type")
         totalDuration = ADDON_SETTINGS.getSetting("Channel_" + str(newchan) + "_totalDuration")
         
         if int(chtype) == 9 and int(totalDuration) == 0:
-            # adjust the show and time offsets to properly position inside the playlist
-            self.log("timedif " + str(timedif))
-            self.log("pos " + str(pos))
-            self.log("showoffset" + str(showoffset))
-        else:
-            while showoffset + timedif > self.MyOverlayWindow.channels[newchan - 1].getItemDuration(pos):
-                timedif -= self.MyOverlayWindow.channels[newchan - 1].getItemDuration(pos) - showoffset
-                pos = self.MyOverlayWindow.channels[newchan - 1].fixPlaylistIndex(pos + 1)
-                showoffset = 0
-            self.log("timedif " + str(timedif))
-            self.log("pos " + str(pos))
-            self.log("showoffset" + str(showoffset))
-
-        if pos != plpos:
+            self.log("set playlist position to 0")
+            self.MyOverlayWindow.channels[newchan - 1].setShowPosition(0)
+            self.MyOverlayWindow.channels[newchan - 1].setShowPosition(0)
+            self.MyOverlayWindow.channels[newchan - 1].setShowTime(0)
+            self.MyOverlayWindow.channels[newchan - 1].setAccessTime(time.time())
+        elif pos != plpos:
             self.log("changed playlist position")
             self.MyOverlayWindow.channels[newchan - 1].setShowPosition(plpos)
             self.MyOverlayWindow.channels[newchan - 1].setShowPosition(plpos)
@@ -622,9 +615,8 @@ class EPGWindow(xbmcgui.WindowXMLDialog):
 
         # if the channel is paused, then it's just the current item
         if int(chtype) == 9 and int(totalDuration) == 0:
-            self.log("Live channel without duration.  Setting current item to 1")
-            playlistpos = 0
-            return self.MyOverlayWindow.channels[channel - 1].fixPlaylistIndex(playlistpos)
+            self.log("Live channel without duration.")
+            return self.MyOverlayWindow.channels[channel - 1].playlistPosition
         elif self.MyOverlayWindow.channels[channel - 1].isPaused:
             self.log('determinePlaylistPosAtTime paused return')
             return self.MyOverlayWindow.channels[channel - 1].playlistPosition
