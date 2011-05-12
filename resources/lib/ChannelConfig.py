@@ -745,8 +745,8 @@ class ChannelConfig(xbmcgui.WindowXMLDialog):
         if chansetting4 == "": chansetting4 = 0
         if chansetting5 == "": chansetting5 = 0
         if chansetting6 == "": chansetting6 = "All"
-        if chansetting7 == "": chansetting7 = 0
-        if chansetting8 == "": chansetting8 = 0
+        #if chansetting7 == "": chansetting7 = 0
+        #if chansetting8 == "": chansetting8 = 0
         if chansetting9 == "": chansetting9 = 0
         
         self.getControl(109).setLabel(self.getChanTypeLabel(chantype))
@@ -814,13 +814,15 @@ class ChannelConfig(xbmcgui.WindowXMLDialog):
             self.getControl(200).setLabel(fldname, label2=self.chnlst.uncleanString(chansetting1))
         elif chantype == 8: # music
             self.getControl(212).setLabel(self.findItemInList(self.musicGenreList, chansetting1))
-        #elif chantype == 9: # live
-        #    self.getControl(222).setLabel(self.findItemInList(self.feedList, chansetting1))
+        elif chantype == 9: # live
+            self.getControl(222).setLabel(self.findItemInList(self.feedList, chansetting1))
 
         self.log("fillInDetails return")
 
 
     def findItemInList(self, thelist, item):
+        self.log("thelist " + str(thelist))
+        self.log("item " + str(item))
         loitem = item.lower()
 
         for i in thelist:
