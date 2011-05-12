@@ -29,7 +29,7 @@ ADDON_SETTINGS = Settings.Settings()
 REAL_SETTINGS = xbmcaddon.Addon(id=ADDON_ID)
 ADDON_INFO = REAL_SETTINGS.getAddonInfo('path')
 
-VERSION = "2.0.4"
+VERSION = "2.0.5"
 REAL_SETTINGS.setSetting("Version",VERSION)
 
 TIMEOUT = 15 * 1000
