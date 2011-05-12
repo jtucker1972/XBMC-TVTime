@@ -821,8 +821,6 @@ class ChannelConfig(xbmcgui.WindowXMLDialog):
 
 
     def findItemInList(self, thelist, item):
-        self.log("thelist " + str(thelist))
-        self.log("item " + str(item))
         loitem = item.lower()
 
         for i in thelist:

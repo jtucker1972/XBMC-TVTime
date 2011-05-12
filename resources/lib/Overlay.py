@@ -327,7 +327,7 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
         self.shutdownTimer.start()
 
         try:
-            if self.forceReset == False:
+            if int(self.forceReset) == 0:
                 self.currentChannel = self.fixChannel(int(REAL_SETTINGS.getSetting("CurrentChannel")))
             else:
                 self.currentChannel = self.fixChannel(1)
@@ -649,8 +649,8 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
                 self.channels[self.currentChannel - 1].setPaused(xbmc.getCondVisibility('Player.Paused'))
 
                 # Automatically pause in serial mode
-                if self.channels[self.currentChannel - 1].mode & MODE_ALWAYSPAUSE > 0:
-                    self.channels[self.currentChannel - 1].setPaused(True)
+                #if self.channels[self.currentChannel - 1].mode & MODE_ALWAYSPAUSE > 0:
+                #    self.channels[self.currentChannel - 1].setPaused(True)
 
                 self.channels[self.currentChannel - 1].setShowTime(self.Player.getTime())
                 self.channels[self.currentChannel - 1].setShowPosition(xbmc.PlayList(xbmc.PLAYLIST_MUSIC).getposition())
@@ -1122,8 +1122,10 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
                 ADDON_SETTINGS.writeSettings()
 
             try:
+                self.log("saving current channel " + str(self.currentChannel))
                 REAL_SETTINGS.setSetting('CurrentChannel', str(self.currentChannel))
             except:
+                self.log("unable to save current channel " + str(self.currentChannel))
                 pass
 
             # wait while settings file is being written to
@@ -1240,6 +1242,7 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
         autoChannelResetSetting = int(REAL_SETTINGS.getSetting("autoChannelResetSetting"))
         if autoChannelResetSetting == "":
             autoChannelResetSetting = 0
+        self.log("autoChannelResetSetting " + str(autoChannelResetSetting))
         """
         if autoChannelResetSetting is set to automatic
           loop through all channels to get their totalduration and time values
@@ -1260,11 +1263,13 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
                     if totalTimePlayed == "":
                         totalTimePlayed = 0
 
+                    self.log("Channel_" + str(i+1) + "_time " + str(totalTimePlayed))
                     totalDuration =  ADDON_SETTINGS.getSetting("Channel_" + str(i+1) + "_totalDuration")
                     if totalDuration == "":
                         totalDuration = 0
+                    self.log("Channel_" + str(i+1) + "_totalDuration " + str(totalDuration))
 
-                    if totalTimePlayed > totalDuration:
+                    if int(totalTimePlayed) > int(totalDuration):
                         needsreset = True
         
             if needsreset:
@@ -1278,13 +1283,13 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
             
             timedif = time.time() - self.lastResetTime
 
-            if autoChannelResetSetting == 1 and timedif > (60 * 60 * 24):
+            if int(autoChannelResetSetting) == 1 and timedif > (60 * 60 * 24):
                 needsreset = True
 
-            if autoChannelResetSetting == 2 and timedif > (60 * 60 * 24 * 7):
+            if int(autoChannelResetSetting) == 2 and timedif > (60 * 60 * 24 * 7):
                 needsreset = True
 
-            if autoChannelResetSetting == 3 and timedif > (60 * 60 * 24 * 30):
+            if int(autoChannelResetSetting) == 3 and timedif > (60 * 60 * 24 * 30):
                 needsreset = True
 
             if timedif < 0:
@@ -1302,9 +1307,9 @@ class TVOverlay(xbmcgui.WindowXMLDialog):
             """
             if REAL_SETTINGS.getSetting('nextAutoResetDateTime') == "":
                 self.setNextAutoResetTime()
-            elif REAL_SETTINGS.getSetting('nextAutoResetDateTimeInterval') <> REAL_SETTINGS.getSetting('ChannelResetSetting'):
+            elif REAL_SETTINGS.getSetting('nextAutoResetDateTimeInterval') <> REAL_SETTINGS.getSetting('autoChannelResetInterval'):
                 self.setNextAutoResetTime()
-            elif REAL_SETTINGS.getSetting('nextAutoResetDateTimeResetTime') <> REAL_SETTINGS.getSetting('ChannelResetSettingTime'):
+            elif REAL_SETTINGS.getSetting('nextAutoResetDateTimeResetTime') <> REAL_SETTINGS.getSetting('autoChannelResetTime'):
                 self.setNextAutoResetTime()
             # set auto reset timer
             self.setAutoResetTimer()
